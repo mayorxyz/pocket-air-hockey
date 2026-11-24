@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@custom-variant hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+
+:root {
+  --rail: #101922;
+  --red: #f0452d;
+  --blue: #2459d6;
+  --ice: #e9f1f4;
+  --font-display: "Outfit", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Plus Jakarta Sans", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --tap-min: clamp(2.75rem, 6.5vw, 3.125rem);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+  height: 100dvh;
+  background: var(--rail);
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  font-family: var(--font-sans);
+  color: #ffffff;
+}
+
+canvas {
+  touch-action: none;
+}
+
+button,
+input,
+select,
+[role="button"],
+[role="switch"] {
+  touch-action: manipulation;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.safe-shell {
+  padding-top: max(0.75rem, var(--safe-top));
+  padding-bottom: max(0.75rem, var(--safe-bottom));
+  padding-left: max(0.875rem, var(--safe-left));
+  padding-right: max(0.875rem, var(--safe-right));
+}
+
+.safe-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

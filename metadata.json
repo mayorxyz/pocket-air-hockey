@@ -1,0 +1,6 @@
+{
+  "name": "Air Hockey",
+  "description": "Fast-paced 1-player and 2-player arcade Air Hockey PWA with crisp 120Hz physics, synthesized audio, and offline play.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
