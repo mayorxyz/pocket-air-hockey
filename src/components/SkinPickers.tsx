@@ -1,5 +1,30 @@
 import React, { useId, useMemo, useState } from 'react';
-import { Check, ChevronLeft, Coins, Crown, Lock, RotateCcw, Share2, Sparkles } from 'lucide-react';
+import {
+  Bird,
+  Bot,
+  Cat,
+  Check,
+  ChevronLeft,
+  Coins,
+  Crown,
+  Drama,
+  Eye,
+  Flame,
+  Heart,
+  Laugh,
+  Lock,
+  Moon,
+  Orbit,
+  RotateCcw,
+  Share2,
+  Skull,
+  Smile,
+  Snowflake,
+  Sparkles,
+  Star,
+  Swords,
+  Zap,
+} from 'lucide-react';
 import { describeSkinUnlock, isSkinUnlocked } from '../game/progression';
 import {
   getMalletSkin,
@@ -169,47 +194,85 @@ const TablePreview: React.FC<{ skin: TableSkin }> = ({ skin }) => {
   );
 };
 
-const PuckPreview: React.FC<{ skin: PuckSkin }> = ({ skin }) => (
-  <div className="w-12 h-12 rounded-xl bg-[#0d151e]/70 border border-white/12 flex items-center justify-center shrink-0">
-    <div
-      className="relative w-8 h-8 rounded-full flex items-center justify-center ring-1 ring-white/25"
-      style={{
-        backgroundColor: skin.body,
-        boxShadow: skin.glow ? `0 0 10px ${skin.glow}` : undefined,
-      }}
-    >
-      <div className="w-5 h-5 rounded-full border-2" style={{ borderColor: skin.ring }} />
-      {skin.emblem === 'crown' && (
-        <Crown
-          className="absolute w-3 h-3"
-          style={{ color: skin.ring }}
-          aria-hidden="true"
-        />
-      )}
-      <div
-        className="absolute top-1.5 left-1.5 w-1.5 h-1.5 rounded-full"
-        style={{ backgroundColor: skin.gloss }}
-      />
-    </div>
-  </div>
-);
+const PUCK_EMBLEM_ICONS: Partial<
+  Record<
+    NonNullable<PuckSkin['emblem']>,
+    React.ComponentType<{ className?: string; style?: React.CSSProperties; 'aria-hidden'?: boolean }>
+  >
+> = {
+  crown: Crown,
+  star: Star,
+  clown: Laugh,
+  skull: Skull,
+  heart: Heart,
+  bolt: Zap,
+  eye: Eye,
+  moon: Moon,
+  devil: Flame,
+  smile: Smile,
+  phoenix: Bird,
+  dragon: Sparkles,
+  scythe: Swords,
+  jester: Drama,
+  robot: Bot,
+  cat: Cat,
+  snowflake: Snowflake,
+  flame: Flame,
+  fang: Swords,
+  orbit: Orbit,
+};
 
-const MalletPreview: React.FC<{ skin: MalletSkin }> = ({ skin }) => (
-  <div className="w-14 h-12 rounded-xl bg-[#0d151e]/70 border border-white/12 flex items-center justify-center gap-1.5 shrink-0">
-    <div
-      className="w-5.5 h-5.5 rounded-full flex items-center justify-center"
-      style={{ backgroundColor: skin.p1, border: `2px solid ${skin.ring}` }}
-    >
-      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: skin.p1dark }} />
+const PuckPreview: React.FC<{ skin: PuckSkin }> = ({ skin }) => {
+  const EmblemIcon = skin.emblem ? PUCK_EMBLEM_ICONS[skin.emblem] : undefined;
+  return (
+    <div className="w-12 h-12 rounded-xl bg-[#0d151e]/70 border border-white/12 flex items-center justify-center shrink-0">
+      <div
+        className="relative w-8 h-8 rounded-full flex items-center justify-center ring-1 ring-white/25"
+        style={{
+          backgroundColor: skin.body,
+          boxShadow: skin.glow ? `0 0 10px ${skin.glow}` : undefined,
+        }}
+      >
+        <div className="w-5 h-5 rounded-full border-2" style={{ borderColor: skin.ring }} />
+        {skin.emblem === 'seven' ? (
+          <span
+            className="absolute text-[10px] font-black leading-none"
+            style={{ color: skin.ring }}
+            aria-hidden="true"
+          >
+            7
+          </span>
+        ) : EmblemIcon ? (
+          <EmblemIcon className="absolute w-3 h-3" style={{ color: skin.ring }} aria-hidden={true} />
+        ) : null}
+        <div
+          className="absolute top-1.5 left-1.5 w-1.5 h-1.5 rounded-full"
+          style={{ backgroundColor: skin.gloss }}
+        />
+      </div>
     </div>
-    <div
-      className="w-5.5 h-5.5 rounded-full flex items-center justify-center"
-      style={{ backgroundColor: skin.p2, border: `2px solid ${skin.ring}` }}
-    >
-      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: skin.p2dark }} />
+  );
+};
+
+const MalletPreview: React.FC<{ skin: MalletSkin }> = ({ skin }) => {
+  const glowStyle = skin.glow ? { boxShadow: `0 0 8px ${skin.glow}` } : undefined;
+  return (
+    <div className="w-14 h-12 rounded-xl bg-[#0d151e]/70 border border-white/12 flex items-center justify-center gap-1.5 shrink-0">
+      <div
+        className="w-5.5 h-5.5 rounded-full flex items-center justify-center"
+        style={{ backgroundColor: skin.p1, border: `2px solid ${skin.ring}`, ...glowStyle }}
+      >
+        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: skin.p1dark }} />
+      </div>
+      <div
+        className="w-5.5 h-5.5 rounded-full flex items-center justify-center"
+        style={{ backgroundColor: skin.p2, border: `2px solid ${skin.ring}`, ...glowStyle }}
+      >
+        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: skin.p2dark }} />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 function formatCompactRequirement(category: SkinCategory, id: string): string {
   const skin = SKINS[category][id];

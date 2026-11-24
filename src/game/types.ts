@@ -124,6 +124,17 @@ export interface DailyProgress {
   rewardClaimed: boolean;
 }
 
+export interface DailyTaskProgress {
+  id: string;
+  progress: number;
+  claimed: boolean;
+}
+
+export interface DailyTasksState {
+  date: string;
+  tasks: DailyTaskProgress[];
+}
+
 export interface UnlocksState {
   table: string[];
   puck: string[];
@@ -147,6 +158,7 @@ export interface SaveDataV3 {
   unlocks: UnlocksState;
   achievements: Record<string, string>;
   daily: DailyProgress;
+  dailyTasks: DailyTasksState;
   stages: Record<number, StageProgress>;
   tutorialCompleted: boolean;
   lastCrateClaimAt: number;

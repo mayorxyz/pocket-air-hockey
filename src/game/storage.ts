@@ -1,7 +1,13 @@
-import { getDailyChallengeForDate, getLocalDateKey, STAGES } from './registries';
+import {
+  getDailyChallengeForDate,
+  getDailyTasksForDate,
+  getLocalDateKey,
+  STAGES,
+} from './registries';
 import { SKINS } from './skins';
 import {
   DailyProgress,
+  DailyTasksState,
   DEFAULT_SETTINGS,
   Difficulty,
   GameMode,
@@ -72,6 +78,17 @@ export function createFreshDaily(dateKey = getLocalDateKey()): DailyProgress {
   };
 }
 
+export function createFreshDailyTasks(dateKey = getLocalDateKey()): DailyTasksState {
+  return {
+    date: dateKey,
+    tasks: getDailyTasksForDate(dateKey).map((t) => ({
+      id: t.id,
+      progress: 0,
+      claimed: false,
+    })),
+  };
+}
+
 export function createDefaultSave(): SaveDataV3 {
   return {
     v: 3,
@@ -82,6 +99,7 @@ export function createDefaultSave(): SaveDataV3 {
     unlocks: createStarterUnlocks(),
     achievements: {},
     daily: createFreshDaily(),
+    dailyTasks: createFreshDailyTasks(),
     stages: createDefaultStages(),
     tutorialCompleted: false,
     lastCrateClaimAt: 0,
@@ -326,6 +344,40 @@ function sanitizeDaily(raw: unknown): DailyProgress {
   };
 }
 
+export function ensureDailyTasksFresh(tasks: DailyTasksState): DailyTasksState {
+  const today = getLocalDateKey();
+  if (tasks && tasks.date === today) {
+    const expectedIds = getDailyTasksForDate(today).map((t) => t.id);
+    if (
+      expectedIds.length === tasks.tasks.length &&
+      expectedIds.every((id) => tasks.tasks.some((t) => t.id === id))
+    ) {
+      return tasks;
+    }
+  }
+  return createFreshDailyTasks(today);
+}
+
+function sanitizeDailyTasks(raw: unknown): DailyTasksState {
+  const today = getLocalDateKey();
+  const defs = getDailyTasksForDate(today);
+  if (!raw || typeof raw !== 'object') return createFreshDailyTasks(today);
+  const r = raw as Partial<DailyTasksState>;
+  if (r.date !== today || !Array.isArray(r.tasks)) return createFreshDailyTasks(today);
+
+  const rawTasks = r.tasks;
+  const tasks = defs.map((def) => {
+    const found = rawTasks.find((t) => t && t.id === def.id);
+    const progress = Math.round(clampNum(found?.progress, 0, def.target, 0));
+    return {
+      id: def.id,
+      progress,
+      claimed: Boolean(found?.claimed) && progress >= def.target,
+    };
+  });
+  return { date: today, tasks };
+}
+
 function migrate1to2(raw: Record<string, unknown>): Record<string, unknown> {
   return {
     ...raw,
@@ -369,6 +421,7 @@ function migrate2to3(raw: Record<string, unknown>, prevVersion: number): SaveDat
     unlocks,
     achievements: sanitizeAchievements(raw.achievements),
     daily: sanitizeDaily(raw.daily),
+    dailyTasks: sanitizeDailyTasks(raw.dailyTasks),
     stages: sanitizeStages(raw.stages),
     tutorialCompleted,
     lastCrateClaimAt,
@@ -506,8 +559,9 @@ class SaveStore {
 
   get(): SaveDataV3 {
     const freshDaily = ensureDailyFresh(this.data.daily);
-    if (freshDaily !== this.data.daily) {
-      this.data = { ...this.data, daily: freshDaily };
+    const freshTasks = ensureDailyTasksFresh(this.data.dailyTasks);
+    if (freshDaily !== this.data.daily || freshTasks !== this.data.dailyTasks) {
+      this.data = { ...this.data, daily: freshDaily, dailyTasks: freshTasks };
       this.scheduleWrite();
     }
     return this.data;

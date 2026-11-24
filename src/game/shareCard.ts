@@ -1,5 +1,7 @@
 import { getMalletSkin, getPuckSkin, getTableSkin } from './skins';
 import { buildTableGeometry, tracePolygonPath } from './tableGeometry';
+import { drawPuckEmblem } from './puckEmblems';
+import { drawMalletPattern } from './malletPatterns';
 
 export interface ShareCardPayload {
   title: string;
@@ -118,6 +120,12 @@ export async function shareResultCard(
   ctx.beginPath();
   ctx.arc(tw / 2, 128, 34, 0, Math.PI * 2);
   ctx.fill();
+  if (malletSkin.pattern) {
+    ctx.save();
+    ctx.translate(tw / 2, 128);
+    drawMalletPattern(ctx, malletSkin.pattern, malletSkin.accent ?? malletSkin.ring, 34);
+    ctx.restore();
+  }
   ctx.lineWidth = 3;
   ctx.strokeStyle = malletSkin.ring;
   ctx.beginPath();
@@ -133,6 +141,12 @@ export async function shareResultCard(
   ctx.beginPath();
   ctx.arc(tw / 2, th - 128, 34, 0, Math.PI * 2);
   ctx.fill();
+  if (malletSkin.pattern) {
+    ctx.save();
+    ctx.translate(tw / 2, th - 128);
+    drawMalletPattern(ctx, malletSkin.pattern, malletSkin.accent ?? malletSkin.ring, 34);
+    ctx.restore();
+  }
   ctx.strokeStyle = malletSkin.ring;
   ctx.beginPath();
   ctx.arc(tw / 2, th - 128, 25, 0, Math.PI * 2);
@@ -153,18 +167,11 @@ export async function shareResultCard(
   ctx.arc(tw / 2, th / 2, 16, 0, Math.PI * 2);
   ctx.stroke();
 
-  if (puckSkin.emblem === 'crown') {
-    ctx.fillStyle = puckSkin.ring;
-    ctx.beginPath();
-    ctx.moveTo(tw / 2 - 7, th / 2 + 5);
-    ctx.lineTo(tw / 2 - 8, th / 2 - 3);
-    ctx.lineTo(tw / 2 - 3, th / 2 + 1);
-    ctx.lineTo(tw / 2, th / 2 - 6);
-    ctx.lineTo(tw / 2 + 3, th / 2 + 1);
-    ctx.lineTo(tw / 2 + 8, th / 2 - 3);
-    ctx.lineTo(tw / 2 + 7, th / 2 + 5);
-    ctx.closePath();
-    ctx.fill();
+  if (puckSkin.emblem) {
+    ctx.save();
+    ctx.translate(tw / 2, th / 2);
+    drawPuckEmblem(ctx, puckSkin.emblem, puckSkin.ring, puckSkin.body);
+    ctx.restore();
   }
 
   ctx.restore();

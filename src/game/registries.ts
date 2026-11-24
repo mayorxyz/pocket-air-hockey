@@ -478,3 +478,22 @@ export function getDailyChallengeForDate(dateKey: string): DailyChallengeDef {
   const idx = Math.abs(hash) % CHALLENGES.length;
   return CHALLENGES[idx];
 }
+
+export function getDailyTasksForDate(dateKey: string, count = 3): DailyChallengeDef[] {
+  let seed = 0;
+  for (let i = 0; i < dateKey.length; i++) {
+    seed = (seed * 31 + dateKey.charCodeAt(i)) | 0;
+  }
+  seed = Math.abs(seed) || 1;
+  const used = new Set<number>();
+  const picked: DailyChallengeDef[] = [];
+  const wanted = Math.min(count, CHALLENGES.length);
+  while (picked.length < wanted && used.size < CHALLENGES.length) {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    const idx = seed % CHALLENGES.length;
+    if (used.has(idx)) continue;
+    used.add(idx);
+    picked.push(CHALLENGES[idx]);
+  }
+  return picked;
+}

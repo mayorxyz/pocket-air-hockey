@@ -16,6 +16,7 @@ import { soundEngine } from './game/audio';
 import { AirHockeyEngine, HudSnapshot } from './game/engine';
 import {
   claimArenaCrate,
+  claimDailyTaskReward,
   completeTutorialSave,
   deductContinueCoins,
   finalizeMatch,
@@ -491,6 +492,20 @@ export default function App() {
       showStatusToast(`+${res.rewardCoins} Coins — Arena Crate Claimed!`);
     }
   }, [showStatusToast]);
+
+  const handleClaimDailyTask = useCallback(
+    (taskId: string) => {
+      soundEngine.init();
+      const res = claimDailyTaskReward(saveRef.current, taskId);
+      if (res.claimed) {
+        saveRef.current = res.save;
+        setSave(res.save);
+        soundEngine.play('unlock');
+        showStatusToast(`+${res.rewardCoins} Coins — Daily Task Complete!`);
+      }
+    },
+    [showStatusToast]
+  );
 
   const triggerShare = useCallback(
     async (payload: ShareCardPayload) => {
@@ -1056,7 +1071,10 @@ export default function App() {
       {screen === 'achievements' && (
         <AchievementsScreen
           stats={save.stats}
+          save={save}
           unlocked={save.achievements}
+          onClaimCrate={handleClaimCrate}
+          onClaimDailyTask={handleClaimDailyTask}
           onBack={goBack}
         />
       )}

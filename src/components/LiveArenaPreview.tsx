@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { getMalletSkin, getPuckSkin, getTableSkin, isLightSurface } from '../game/skins';
 import { buildTableGeometry, tracePolygonPath } from '../game/tableGeometry';
 import { drawTablePattern } from '../game/tablePatterns';
+import { drawPuckEmblem } from '../game/puckEmblems';
+import { drawMalletPattern } from '../game/malletPatterns';
 
 interface LiveArenaPreviewProps {
   tableSkinId: string;
@@ -217,10 +219,23 @@ export const LiveArenaPreview: React.FC<LiveArenaPreviewProps> = ({
       ctx.arc(mx + 3, my + 6, MR, 0, Math.PI * 2);
       ctx.fill();
 
+      ctx.save();
+      if (malletSkin.glow && !isStatic) {
+        ctx.shadowColor = malletSkin.glow;
+        ctx.shadowBlur = 12;
+      }
       ctx.fillStyle = fill;
       ctx.beginPath();
       ctx.arc(mx, my, MR, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
+
+      if (malletSkin.pattern) {
+        ctx.save();
+        ctx.translate(mx, my);
+        drawMalletPattern(ctx, malletSkin.pattern, malletSkin.accent ?? malletSkin.ring, MR);
+        ctx.restore();
+      }
 
       ctx.lineWidth = 1.5;
       ctx.strokeStyle = lightSurface ? 'rgba(16, 25, 34, 0.28)' : 'rgba(255, 255, 255, 0.24)';
@@ -275,21 +290,11 @@ export const LiveArenaPreview: React.FC<LiveArenaPreviewProps> = ({
       ctx.arc(px, py, PR - 5, 0, Math.PI * 2);
       ctx.stroke();
 
-      if (puckSkin.emblem === 'crown') {
+      if (puckSkin.emblem) {
         ctx.save();
         ctx.translate(px, py);
         ctx.rotate(isStatic ? 0 : spinAngle);
-        ctx.fillStyle = puckSkin.ring;
-        ctx.beginPath();
-        ctx.moveTo(-6.5, 4.5);
-        ctx.lineTo(-7.5, -2.5);
-        ctx.lineTo(-3, 0.5);
-        ctx.lineTo(0, -5.5);
-        ctx.lineTo(3, 0.5);
-        ctx.lineTo(7.5, -2.5);
-        ctx.lineTo(6.5, 4.5);
-        ctx.closePath();
-        ctx.fill();
+        drawPuckEmblem(ctx, puckSkin.emblem, puckSkin.ring, puckSkin.body);
         ctx.restore();
       }
 

@@ -8,6 +8,8 @@ import {
   PowerupId,
 } from './registries';
 import { getMalletSkin, getPuckSkin, getTableSkin, isLightSurface, TableSkin } from './skins';
+import { drawPuckEmblem } from './puckEmblems';
+import { drawMalletPattern } from './malletPatterns';
 import {
   buildTableGeometry,
   isAngleInArc,
@@ -2169,8 +2171,21 @@ export class AirHockeyEngine {
       this.circle(m.x + 3, m.y + 7, mr);
     }
 
+    ctx.save();
+    if (malletSkin.glow && this.effectiveQuality() === 'high' && !this.isReducedMotion()) {
+      ctx.shadowColor = malletSkin.glow;
+      ctx.shadowBlur = 14;
+    }
     ctx.fillStyle = color;
     this.circle(m.x, m.y, mr);
+    ctx.restore();
+
+    if (malletSkin.pattern) {
+      ctx.save();
+      ctx.translate(m.x, m.y);
+      drawMalletPattern(ctx, malletSkin.pattern, malletSkin.accent ?? malletSkin.ring, mr);
+      ctx.restore();
+    }
 
     // High-contrast outer rim derived from table surface luminance
     ctx.lineWidth = 1.5;
@@ -2234,21 +2249,11 @@ export class AirHockeyEngine {
     ctx.arc(p.x, p.y, PR - 5, 0, Math.PI * 2);
     ctx.stroke();
 
-    if (puckSkin.emblem === 'crown') {
+    if (puckSkin.emblem) {
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(this.isReducedMotion() ? 0 : p.spinAngle);
-      ctx.fillStyle = puckSkin.ring;
-      ctx.beginPath();
-      ctx.moveTo(-6.5, 4.5);
-      ctx.lineTo(-7.5, -2.5);
-      ctx.lineTo(-3, 0.5);
-      ctx.lineTo(0, -5.5);
-      ctx.lineTo(3, 0.5);
-      ctx.lineTo(7.5, -2.5);
-      ctx.lineTo(6.5, 4.5);
-      ctx.closePath();
-      ctx.fill();
+      drawPuckEmblem(ctx, puckSkin.emblem, puckSkin.ring, puckSkin.body);
       ctx.restore();
     }
 
