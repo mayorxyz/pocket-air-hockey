@@ -415,39 +415,9 @@ function formatCompactRequirement(category: SkinCategory, id: string): string {
 }
 
 export const SkinPickers: React.FC<SkinPickersProps> = ({ save, onSelectOrBuy }) => {
-  const [pendingBuy, setPendingBuy] = useState<{
-    category: SkinCategory;
-    id: string;
-    name: string;
-    price: number;
-  } | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-
   const handleTap = (category: SkinCategory, id: string) => {
-    setNotice(null);
-    const skin = SKINS[category][id];
-    if (!skin) return;
-
-    if (isSkinUnlocked(save, category, id)) {
-      onSelectOrBuy(category, id);
-      return;
-    }
-
-    if (skin.unlock?.type === 'coins') {
-      if (save.coins < skin.unlock.price) {
-        setNotice(`${skin.name} requires ${skin.unlock.price} coins (you have ${save.coins}).`);
-        return;
-      }
-      setPendingBuy({
-        category,
-        id,
-        name: skin.name,
-        price: skin.unlock.price,
-      });
-      return;
-    }
-
-    setNotice(`${skin.name} unlocks with: ${describeSkinUnlock(category, id)}`);
+    if (!isSkinUnlocked(save, category, id)) return;
+    onSelectOrBuy(category, id);
   };
 
   const renderSkinCard = (
@@ -457,9 +427,7 @@ export const SkinPickers: React.FC<SkinPickersProps> = ({ save, onSelectOrBuy })
     equippedId: string,
     preview: React.ReactNode
   ) => {
-    const unlocked = isSkinUnlocked(save, category, id);
     const active = id === equippedId;
-    const req = !unlocked ? describeSkinUnlock(category, id) : '';
 
     return (
       <button
@@ -470,9 +438,7 @@ export const SkinPickers: React.FC<SkinPickersProps> = ({ save, onSelectOrBuy })
         className={`relative min-w-[7.25rem] min-h-[7rem] p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-transform active:scale-[0.97] cursor-pointer shrink-0 ${
           active
             ? 'bg-white text-[#101922] border-2 border-[#f0452d] ring-2 ring-white shadow-lg'
-            : unlocked
-              ? 'bg-[#1c2b3b] text-white border border-white/15 hover:bg-[#24364a] hover:border-white/30'
-              : 'bg-[#101922]/70 text-white/80 border border-white/8 hover:bg-[#182532]'
+            : 'bg-[#1c2b3b] text-white border border-white/15 hover:bg-[#24364a] hover:border-white/30'
         }`}
       >
         {active && (
@@ -483,34 +449,28 @@ export const SkinPickers: React.FC<SkinPickersProps> = ({ save, onSelectOrBuy })
             <Check className="w-3.5 h-3.5 stroke-[3]" />
           </span>
         )}
-        {!unlocked && (
-          <span className="absolute top-2 right-2 text-[#b8c7d3]" aria-hidden="true">
-            <Lock className="w-3.5 h-3.5" />
-          </span>
-        )}
-        <div className={!unlocked ? 'opacity-75' : ''}>{preview}</div>
+        <div>{preview}</div>
         <span className="text-xs sm:text-sm font-bold text-center leading-tight">{name}</span>
-        {!unlocked && (
-          <span className="text-[11px] text-[#fbbf24] font-semibold text-center leading-tight">
-            {req}
-          </span>
-        )}
       </button>
     );
   };
 
+  const unlockedTables = Object.values(SKINS.table).filter((skin) =>
+    isSkinUnlocked(save, 'table', skin.id)
+  );
+  const unlockedPucks = Object.values(SKINS.puck).filter((skin) =>
+    isSkinUnlocked(save, 'puck', skin.id)
+  );
+  const unlockedMallets = Object.values(SKINS.mallet).filter((skin) =>
+    isSkinUnlocked(save, 'mallet', skin.id)
+  );
+
   return (
     <div className="space-y-5">
-      {notice && (
-        <div className="rounded-xl bg-[#0e1720] border border-white/18 px-3.5 py-2.5 text-sm text-[#e9f1f4]">
-          {notice}
-        </div>
-      )}
-
       <div>
         <div className="text-sm font-bold text-[#b8c7d3] mb-2">Table skin</div>
         <div className="flex gap-2.5 overflow-x-auto pb-1.5 touch-pan-x">
-          {Object.values(SKINS.table).map((skin) =>
+          {unlockedTables.map((skin) =>
             renderSkinCard(
               'table',
               skin.id,
@@ -525,7 +485,7 @@ export const SkinPickers: React.FC<SkinPickersProps> = ({ save, onSelectOrBuy })
       <div>
         <div className="text-sm font-bold text-[#b8c7d3] mb-2">Puck skin</div>
         <div className="flex gap-2.5 overflow-x-auto pb-1.5 touch-pan-x">
-          {Object.values(SKINS.puck).map((skin) =>
+          {unlockedPucks.map((skin) =>
             renderSkinCard(
               'puck',
               skin.id,
@@ -540,7 +500,7 @@ export const SkinPickers: React.FC<SkinPickersProps> = ({ save, onSelectOrBuy })
       <div>
         <div className="text-sm font-bold text-[#b8c7d3] mb-2">Mallet skin</div>
         <div className="flex gap-2.5 overflow-x-auto pb-1.5 touch-pan-x">
-          {Object.values(SKINS.mallet).map((skin) =>
+          {unlockedMallets.map((skin) =>
             renderSkinCard(
               'mallet',
               skin.id,
@@ -551,20 +511,6 @@ export const SkinPickers: React.FC<SkinPickersProps> = ({ save, onSelectOrBuy })
           )}
         </div>
       </div>
-
-      {pendingBuy && (
-        <ConfirmDialog
-          title={`Unlock ${pendingBuy.name}?`}
-          message={`Spend ${pendingBuy.price} coins to unlock and equip this skin.`}
-          confirmLabel={`Buy for ${pendingBuy.price} coins`}
-          destructive={false}
-          onConfirm={() => {
-            onSelectOrBuy(pendingBuy.category, pendingBuy.id);
-            setPendingBuy(null);
-          }}
-          onCancel={() => setPendingBuy(null)}
-        />
-      )}
     </div>
   );
 };

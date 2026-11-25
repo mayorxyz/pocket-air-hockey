@@ -102,7 +102,7 @@ export function deductContinueCoins(save: SaveDataV3, cost: number): SaveDataV3 
   return nextSave;
 }
 
-export const ARENA_CRATE_COOLDOWN_MS = 6 * 60 * 60 * 1000;
+export const ARENA_CRATE_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
 export function getArenaCrateStatus(
   save: SaveDataV3,
@@ -125,7 +125,7 @@ export function getArenaCrateStatus(
   }
 
   const streakBonus = Math.min(20, Math.max(0, nextStreak - 1) * 5);
-  const rewardCoins = 30 + streakBonus;
+  const rewardCoins = 5 + streakBonus;
 
   return { ready, remainingMs, rewardCoins, nextStreak };
 }

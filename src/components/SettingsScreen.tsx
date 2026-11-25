@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, ChevronLeft, ChevronRight, Coins, Unlock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Coins, Unlock } from 'lucide-react';
 import { SkinCategory } from '../game/skins';
 import {
   APP_VERSION,
@@ -22,6 +22,11 @@ interface SettingsScreenProps {
   onBack: () => void;
 }
 
+const CARD = 'rounded-2xl bg-[#14202c] border border-white/10 divide-y divide-white/10 overflow-hidden';
+const HEADING = 'font-display m-0 mb-1.5 px-1 text-xs font-extrabold uppercase tracking-wide text-[#b8c7d3]';
+const FOCUS = 'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white';
+const ROW = `w-full min-h-12 px-3 py-2 flex items-center justify-between gap-3 text-left text-sm font-semibold leading-snug ${FOCUS}`;
+
 interface ToggleRowProps {
   label: string;
   checked: boolean;
@@ -34,20 +39,16 @@ const ToggleRow: React.FC<ToggleRowProps> = ({ label, checked, onChange }) => (
     role="switch"
     aria-checked={checked}
     onClick={() => onChange(!checked)}
-    className="w-full min-h-[3.25rem] px-4 py-2.5 flex items-center justify-between gap-4 text-left hover:bg-white/8 transition-colors cursor-pointer"
+    className={`${ROW} text-white hover:bg-white/8 cursor-pointer`}
   >
-    <span className="text-sm sm:text-base font-semibold text-white min-w-0 leading-snug">
-      {label}
-    </span>
+    <span className="min-w-0">{label}</span>
     <span
       aria-hidden="true"
-      className={`w-12 h-7 rounded-full p-0.5 transition-colors shrink-0 flex items-center border ${
-        checked
-          ? 'bg-[#f0452d] border-[#ff8a76] justify-end'
-          : 'bg-white/15 border-white/20 justify-start'
+      className={`w-11 h-6 rounded-full p-0.5 shrink-0 flex items-center transition-colors ${
+        checked ? 'bg-[#f0452d] justify-end' : 'bg-white/20 justify-start'
       }`}
     >
-      <span className="w-5.5 h-5.5 rounded-full bg-white shadow-sm" />
+      <span className="w-5 h-5 rounded-full bg-white shadow-sm" />
     </span>
   </button>
 );
@@ -66,11 +67,9 @@ function SegmentedRow<T extends string | number>({
   onChange,
 }: SegmentedRowProps<T>) {
   return (
-    <div className="px-4 py-3">
-      <div className="text-sm sm:text-base font-semibold text-white mb-2.5 leading-snug">
-        {label}
-      </div>
-      <div className="flex flex-wrap gap-1.5 p-1.5 bg-[#0e1720] border border-white/10 rounded-2xl">
+    <div role="group" aria-label={label} className="p-3">
+      <div className="mb-2 text-sm font-semibold text-white leading-snug">{label}</div>
+      <div className="flex flex-wrap gap-1 p-1 bg-[#0e1720] rounded-xl">
         {options.map((opt) => {
           const active = opt.value === value;
           return (
@@ -79,14 +78,11 @@ function SegmentedRow<T extends string | number>({
               type="button"
               aria-pressed={active}
               onClick={() => onChange(opt.value)}
-              className={`flex-1 min-w-[4.25rem] min-h-12 px-2.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-transform active:scale-[0.98] cursor-pointer inline-flex items-center justify-center gap-1.5 leading-tight text-center ${
-                active
-                  ? 'bg-white text-[#101922] border-2 border-white shadow-sm'
-                  : 'bg-transparent text-[#b8c7d3] border border-transparent hover:text-white hover:bg-white/8'
+              className={`flex-auto basis-0 min-w-fit min-h-11 px-2 py-1 rounded-lg text-xs font-bold text-center leading-tight cursor-pointer transition-transform active:scale-[0.97] ${FOCUS} ${
+                active ? 'bg-white text-[#101922]' : 'text-[#b8c7d3] hover:text-white hover:bg-white/8'
               }`}
             >
-              {active && <Check className="w-3.5 h-3.5 shrink-0 stroke-[3]" aria-hidden="true" />}
-              <span>{opt.label}</span>
+              {opt.label}
             </button>
           );
         })}
@@ -109,296 +105,289 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const { settings } = save;
 
   return (
-    <div
-      style={{
-        paddingLeft: 'max(1rem, env(safe-area-inset-left))',
-        paddingRight: 'max(1rem, env(safe-area-inset-right))',
-      }}
-      className="fixed inset-0 z-20 flex flex-col bg-[#0d151e]/90 backdrop-blur-md overflow-hidden"
-    >
-      <header
-        style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
-        className="w-full max-w-[min(100%,34rem)] mx-auto pb-3 flex items-center justify-between gap-2 shrink-0"
-      >
+    <div className="fixed inset-0 z-20 flex flex-col bg-[#0d151e]/95 backdrop-blur-md pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]">
+      <header className="w-full max-w-xl mx-auto shrink-0 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2.5 flex items-center gap-2.5">
         <button
           type="button"
           onClick={onBack}
-          className="min-h-12 min-w-12 px-3 rounded-2xl bg-white/12 border border-white/15 hover:bg-white/18 text-white font-bold text-sm sm:text-base inline-flex items-center gap-1.5 transition-transform active:scale-[0.97] cursor-pointer"
+          aria-label="Back"
+          className="w-11 h-11 rounded-full bg-[#14202c] border border-white/15 text-white inline-flex items-center justify-center shrink-0 cursor-pointer transition-transform active:scale-[0.97]"
         >
-          <ChevronLeft className="w-5 h-5 shrink-0" aria-hidden="true" />
-          <span>Back</span>
+          <ChevronLeft className="w-6 h-6" aria-hidden="true" />
         </button>
-        <h1 className="font-display m-0 text-[clamp(1.25rem,4vw,1.5rem)] font-extrabold italic tracking-tight text-white">
+        <h1 className="font-display m-0 flex-1 min-w-0 text-2xl font-extrabold italic tracking-tight text-white leading-none">
           Settings
         </h1>
-        <div className="min-h-12 px-3 rounded-2xl bg-[#14202c] border border-[#fbbf24]/30 flex items-center gap-1.5 text-sm font-extrabold text-[#fbbf24] tabular-nums">
+        <div
+          aria-label={`${save.coins} coins`}
+          className="h-11 px-3 rounded-full bg-[#14202c] border border-[#fbbf24]/40 inline-flex items-center gap-1.5 text-sm font-extrabold text-[#fbbf24] tabular-nums shrink-0"
+        >
           <Coins className="w-4 h-4 shrink-0" aria-hidden="true" />
-          <span>{save.coins}</span>
+          <span>{save.coins.toLocaleString()}</span>
         </div>
       </header>
 
-      <div
-        style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
-        className="flex-1 w-full max-w-[min(100%,34rem)] mx-auto safe-scroll space-y-5 pr-0.5"
-      >
-        <section>
-          <h2 className="font-display text-sm font-extrabold text-[#b8c7d3] mb-2 px-1">
-            Skins
-          </h2>
-          <div className="rounded-2xl bg-[#14202c]/95 border border-white/14 p-4 shadow-lg">
-            <SkinPickers save={save} onSelectOrBuy={onSelectOrBuySkin} />
-          </div>
-        </section>
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="w-full max-w-xl mx-auto flex flex-col gap-3.5 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <section>
+            <h2 className={HEADING}>
+              Skins
+            </h2>
+            <div className="rounded-2xl bg-[#14202c] border border-white/10 p-3">
+              <SkinPickers save={save} onSelectOrBuy={onSelectOrBuySkin} />
+            </div>
+          </section>
 
-        <section>
-          <h2 className="font-display text-sm font-extrabold text-[#b8c7d3] mb-2 px-1">
-            Audio
-          </h2>
-          <div className="rounded-2xl bg-[#14202c]/95 border border-white/14 divide-y divide-white/10 overflow-hidden shadow-lg">
-            <ToggleRow
-              label="Sound effects"
-              checked={settings.sfxEnabled}
-              onChange={(sfxEnabled) => onUpdate({ sfxEnabled })}
-            />
-            <ToggleRow
-              label="Music"
-              checked={settings.musicEnabled}
-              onChange={(musicEnabled) => onUpdate({ musicEnabled })}
-            />
-            <div className="px-4 py-3.5">
-              <div className="flex items-center justify-between mb-2">
-                <label
-                  htmlFor="master-vol"
-                  className="text-sm sm:text-base font-semibold text-white"
-                >
-                  Master volume
-                </label>
-                <span className="text-sm sm:text-base font-bold text-[#b8c7d3] tabular-nums">
-                  {settings.masterVolume}%
-                </span>
+          <section>
+            <h2 className={HEADING}>
+              Audio
+            </h2>
+            <div className={CARD}>
+              <ToggleRow
+                label="Sound effects"
+                checked={settings.sfxEnabled}
+                onChange={(sfxEnabled) => onUpdate({ sfxEnabled })}
+              />
+              <ToggleRow
+                label="Music"
+                checked={settings.musicEnabled}
+                onChange={(musicEnabled) => onUpdate({ musicEnabled })}
+              />
+              <div className="px-3 pt-3 pb-1">
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="master-vol"
+                    className="text-sm font-semibold text-white"
+                  >
+                    Master volume
+                  </label>
+                  <span className="text-sm font-bold text-[#b8c7d3] tabular-nums">
+                    {settings.masterVolume}%
+                  </span>
+                </div>
+                <input
+                  id="master-vol"
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={settings.masterVolume}
+                  onChange={(e) => onUpdate({ masterVolume: Number(e.target.value) })}
+                  className="w-full h-11 accent-[#f0452d] cursor-pointer"
+                />
               </div>
-              <input
-                id="master-vol"
-                type="range"
-                min={0}
-                max={100}
-                step={5}
-                value={settings.masterVolume}
-                onChange={(e) => onUpdate({ masterVolume: Number(e.target.value) })}
-                className="w-full h-12 accent-[#f0452d] cursor-pointer"
+            </div>
+          </section>
+
+          <section>
+            <h2 className={HEADING}>
+              Gameplay
+            </h2>
+            <div className={CARD}>
+              <ToggleRow
+                label="Power-ups"
+                checked={settings.powerupsEnabled}
+                onChange={(powerupsEnabled) => onUpdate({ powerupsEnabled })}
+              />
+              <SegmentedRow<WinScoreOption>
+                label="Win score (Classic & Obstacles)"
+                value={settings.winScore}
+                options={[
+                  { value: 3, label: '3' },
+                  { value: 5, label: '5' },
+                  { value: 7, label: '7' },
+                  { value: 11, label: '11' },
+                ]}
+                onChange={(winScore) => onUpdate({ winScore })}
+              />
+              <SegmentedRow
+                label="Default bot difficulty"
+                value={settings.defaultDifficulty}
+                options={[
+                  { value: 'easy', label: 'Easy' },
+                  { value: 'medium', label: 'Medium' },
+                  { value: 'hard', label: 'Hard' },
+                ]}
+                onChange={(defaultDifficulty) => onUpdate({ defaultDifficulty })}
+              />
+              <SegmentedRow
+                label="Default bot personality"
+                value={settings.defaultPersonality}
+                options={[
+                  { value: 'balanced', label: 'Balanced' },
+                  { value: 'defender', label: 'Defender' },
+                  { value: 'attacker', label: 'Attacker' },
+                  { value: 'trickster', label: 'Trickster' },
+                ]}
+                onChange={(defaultPersonality) => onUpdate({ defaultPersonality })}
+              />
+              <SegmentedRow
+                label="Mallet offset from finger"
+                value={settings.malletOffset}
+                options={[
+                  { value: 'off', label: 'Off' },
+                  { value: 'small', label: 'Small' },
+                  { value: 'large', label: 'Large' },
+                ]}
+                onChange={(malletOffset) => onUpdate({ malletOffset })}
+              />
+              <SegmentedRow
+                label="Puck speed"
+                value={settings.puckSpeed}
+                options={[
+                  { value: 'normal', label: 'Normal' },
+                  { value: 'fast', label: 'Fast' },
+                ]}
+                onChange={(puckSpeed) => onUpdate({ puckSpeed })}
+              />
+              <SegmentedRow
+                label="Mallet control"
+                value={settings.malletControl}
+                options={[
+                  { value: 'follow', label: 'Follow finger' },
+                  { value: 'relative', label: 'Relative drag' },
+                ]}
+                onChange={(malletControl) => onUpdate({ malletControl })}
+              />
+              <SegmentedRow
+                label="Goal slow-mo"
+                value={settings.goalSlowMo}
+                options={[
+                  { value: 'winning', label: 'Match winner' },
+                  { value: 'all', label: 'All goals' },
+                  { value: 'off', label: 'Off' },
+                ]}
+                onChange={(goalSlowMo) => onUpdate({ goalSlowMo })}
               />
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section>
-          <h2 className="font-display text-sm font-extrabold text-[#b8c7d3] mb-2 px-1">
-            Gameplay
-          </h2>
-          <div className="rounded-2xl bg-[#14202c]/95 border border-white/14 divide-y divide-white/10 overflow-hidden shadow-lg">
-            <ToggleRow
-              label="Power-ups"
-              checked={settings.powerupsEnabled}
-              onChange={(powerupsEnabled) => onUpdate({ powerupsEnabled })}
-            />
-            <SegmentedRow<WinScoreOption>
-              label="Win score (Classic & Obstacles)"
-              value={settings.winScore}
-              options={[
-                { value: 3, label: '3' },
-                { value: 5, label: '5' },
-                { value: 7, label: '7' },
-                { value: 11, label: '11' },
-              ]}
-              onChange={(winScore) => onUpdate({ winScore })}
-            />
-            <SegmentedRow
-              label="Default bot difficulty"
-              value={settings.defaultDifficulty}
-              options={[
-                { value: 'easy', label: 'Easy' },
-                { value: 'medium', label: 'Medium' },
-                { value: 'hard', label: 'Hard' },
-              ]}
-              onChange={(defaultDifficulty) => onUpdate({ defaultDifficulty })}
-            />
-            <SegmentedRow
-              label="Default bot personality"
-              value={settings.defaultPersonality}
-              options={[
-                { value: 'balanced', label: 'Balanced' },
-                { value: 'defender', label: 'Defender' },
-                { value: 'attacker', label: 'Attacker' },
-                { value: 'trickster', label: 'Trickster' },
-              ]}
-              onChange={(defaultPersonality) => onUpdate({ defaultPersonality })}
-            />
-            <SegmentedRow
-              label="Mallet offset from finger"
-              value={settings.malletOffset}
-              options={[
-                { value: 'off', label: 'Off' },
-                { value: 'small', label: 'Small' },
-                { value: 'large', label: 'Large' },
-              ]}
-              onChange={(malletOffset) => onUpdate({ malletOffset })}
-            />
-            <SegmentedRow
-              label="Puck speed"
-              value={settings.puckSpeed}
-              options={[
-                { value: 'normal', label: 'Normal' },
-                { value: 'fast', label: 'Fast' },
-              ]}
-              onChange={(puckSpeed) => onUpdate({ puckSpeed })}
-            />
-            <SegmentedRow
-              label="Mallet control"
-              value={settings.malletControl}
-              options={[
-                { value: 'follow', label: 'Follow finger' },
-                { value: 'relative', label: 'Relative drag' },
-              ]}
-              onChange={(malletControl) => onUpdate({ malletControl })}
-            />
-            <SegmentedRow
-              label="Goal slow-mo"
-              value={settings.goalSlowMo}
-              options={[
-                { value: 'winning', label: 'Match winner' },
-                { value: 'all', label: 'All goals' },
-                { value: 'off', label: 'Off' },
-              ]}
-              onChange={(goalSlowMo) => onUpdate({ goalSlowMo })}
-            />
-          </div>
-        </section>
-
-        <section>
-          <h2 className="font-display text-sm font-extrabold text-[#b8c7d3] mb-2 px-1">
-            Feedback
-          </h2>
-          <div className="rounded-2xl bg-[#14202c]/95 border border-white/14 divide-y divide-white/10 overflow-hidden shadow-lg">
-            <ToggleRow
-              label="Vibration"
-              checked={settings.vibration}
-              onChange={(vibration) => onUpdate({ vibration })}
-            />
-            <ToggleRow
-              label="Screen shake on goal"
-              checked={settings.screenShake}
-              onChange={(screenShake) => onUpdate({ screenShake })}
-            />
-          </div>
-        </section>
-
-        <section>
-          <h2 className="font-display text-sm font-extrabold text-[#b8c7d3] mb-2 px-1">
-            Display &amp; Quality
-          </h2>
-          <div className="rounded-2xl bg-[#14202c]/95 border border-white/14 divide-y divide-white/10 overflow-hidden shadow-lg">
-            <SegmentedRow<FpsCapOption>
-              label="Frame rate"
-              value={settings.fpsCap}
-              options={[
-                { value: 60, label: '60 FPS (Battery Saver)' },
-                { value: 120, label: 'Uncapped (120Hz)' },
-              ]}
-              onChange={(fpsCap) => onUpdate({ fpsCap })}
-            />
-            <SegmentedRow
-              label="Graphics quality"
-              value={settings.quality}
-              options={[
-                { value: 'auto', label: 'Auto' },
-                { value: 'high', label: 'High' },
-                { value: 'low', label: 'Low' },
-              ]}
-              onChange={(quality) => onUpdate({ quality })}
-            />
-            <ToggleRow
-              label="Puck trail"
-              checked={settings.puckTrail}
-              onChange={(puckTrail) => onUpdate({ puckTrail })}
-            />
-            <ToggleRow
-              label="Show FPS"
-              checked={settings.showFps}
-              onChange={(showFps) => onUpdate({ showFps })}
-            />
-            <ToggleRow
-              label="Reduce motion"
-              checked={settings.reduceMotion}
-              onChange={(reduceMotion) => onUpdate({ reduceMotion })}
-            />
-          </div>
-        </section>
-
-        <section>
-          <h2 className="font-display text-sm font-extrabold text-[#b8c7d3] mb-2 px-1">
-            Data
-          </h2>
-          <div className="rounded-2xl bg-[#14202c]/95 border border-white/14 divide-y divide-white/10 overflow-hidden shadow-lg">
-            <button
-              type="button"
-              onClick={() => setConfirmKind('stats')}
-              className="w-full min-h-[3.25rem] px-4 py-3 text-left text-sm sm:text-base font-bold text-[#ff8a76] hover:bg-white/8 transition-colors cursor-pointer"
-            >
-              Reset stats &amp; history
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmKind('settings')}
-              className="w-full min-h-[3.25rem] px-4 py-3 text-left text-sm sm:text-base font-bold text-[#ff8a76] hover:bg-white/8 transition-colors cursor-pointer"
-            >
-              Reset all settings
-            </button>
-          </div>
-        </section>
-
-        {import.meta.env.DEV && (
           <section>
-            <h2 className="font-display text-sm font-extrabold text-amber-300 mb-2 px-1">
-              Developer Testing
+            <h2 className={HEADING}>
+              Feedback
             </h2>
-            <div className="rounded-2xl bg-amber-950/35 border border-amber-300/25 overflow-hidden shadow-lg">
+            <div className={CARD}>
+              <ToggleRow
+                label="Vibration"
+                checked={settings.vibration}
+                onChange={(vibration) => onUpdate({ vibration })}
+              />
+              <ToggleRow
+                label="Screen shake on goal"
+                checked={settings.screenShake}
+                onChange={(screenShake) => onUpdate({ screenShake })}
+              />
+            </div>
+          </section>
+
+          <section>
+            <h2 className={HEADING}>
+              Display &amp; Quality
+            </h2>
+            <div className={CARD}>
+              <SegmentedRow<FpsCapOption>
+                label="Frame rate"
+                value={settings.fpsCap}
+                options={[
+                  { value: 60, label: '60 FPS · Saver' },
+                  { value: 120, label: '120 Hz · Max' },
+                ]}
+                onChange={(fpsCap) => onUpdate({ fpsCap })}
+              />
+              <SegmentedRow
+                label="Graphics quality"
+                value={settings.quality}
+                options={[
+                  { value: 'auto', label: 'Auto' },
+                  { value: 'high', label: 'High' },
+                  { value: 'low', label: 'Low' },
+                ]}
+                onChange={(quality) => onUpdate({ quality })}
+              />
+              <ToggleRow
+                label="Puck trail"
+                checked={settings.puckTrail}
+                onChange={(puckTrail) => onUpdate({ puckTrail })}
+              />
+              <ToggleRow
+                label="Show FPS"
+                checked={settings.showFps}
+                onChange={(showFps) => onUpdate({ showFps })}
+              />
+              <ToggleRow
+                label="Reduce motion"
+                checked={settings.reduceMotion}
+                onChange={(reduceMotion) => onUpdate({ reduceMotion })}
+              />
+            </div>
+          </section>
+
+          <section>
+            <h2 className={HEADING}>
+              Data
+            </h2>
+            <div className={CARD}>
               <button
                 type="button"
-                onClick={() => setConfirmKind('dev-unlock')}
-                className="w-full min-h-[3.25rem] px-4 py-3 flex items-center gap-2 text-left text-sm sm:text-base font-bold text-amber-100 hover:bg-amber-300/10 transition-colors cursor-pointer"
+                onClick={() => setConfirmKind('stats')}
+                className={`${ROW} text-[#ff8a76] hover:bg-white/8 cursor-pointer`}
               >
-                <Unlock className="w-4 h-4 shrink-0" aria-hidden="true" />
-                Unlock all for testing
+                Reset stats &amp; history
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmKind('settings')}
+                className={`${ROW} text-[#ff8a76] hover:bg-white/8 cursor-pointer`}
+              >
+                Reset all settings
               </button>
             </div>
           </section>
-        )}
 
-        <section>
-          <h2 className="font-display text-sm font-extrabold text-[#b8c7d3] mb-2 px-1">
-            Info
-          </h2>
-          <div className="rounded-2xl bg-[#14202c]/95 border border-white/14 divide-y divide-white/10 overflow-hidden shadow-lg">
-            <button
-              type="button"
-              onClick={onOpenHowTo}
-              className="w-full min-h-[3.25rem] px-4 py-3 flex items-center justify-between text-left text-sm sm:text-base font-semibold text-white hover:bg-white/8 transition-colors cursor-pointer"
-            >
-              <span>How to Play</span>
-              <ChevronRight className="w-5 h-5 text-[#b8c7d3]" aria-hidden="true" />
-            </button>
-            <div className="min-h-[3.25rem] px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-sm sm:text-base">
-              <span className="font-semibold text-white">About</span>
-              <span className="text-[#b8c7d3] tabular-nums">Air Hockey · v{APP_VERSION}</span>
+          {import.meta.env.DEV && (
+            <section>
+              <h2 className={`${HEADING} !text-amber-300`}>
+                Developer Testing
+              </h2>
+              <div className="rounded-2xl bg-amber-950/35 border border-amber-300/25 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setConfirmKind('dev-unlock')}
+                  className={`${ROW} !justify-start text-amber-100 hover:bg-amber-300/10 cursor-pointer`}
+                >
+                  <Unlock className="w-4 h-4 shrink-0" aria-hidden="true" />
+                  Unlock all for testing
+                </button>
+              </div>
+            </section>
+          )}
+
+          <section>
+            <h2 className={HEADING}>
+              Info
+            </h2>
+            <div className={CARD}>
+              <button
+                type="button"
+                onClick={onOpenHowTo}
+                className={`${ROW} text-white hover:bg-white/8 cursor-pointer`}
+              >
+                <span>How to Play</span>
+                <ChevronRight className="w-5 h-5 text-[#b8c7d3]" aria-hidden="true" />
+              </button>
+              <div className="min-h-12 px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span className="font-semibold text-white">About</span>
+                <span className="text-[#b8c7d3] tabular-nums">Air Hockey · v{APP_VERSION}</span>
+              </div>
+              <div className="min-h-12 px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span className="font-semibold text-white shrink-0">Credits</span>
+                <span className="text-[#b8c7d3] text-right">
+                  120Hz Arcade Physics · Web Audio Synth
+                </span>
+              </div>
             </div>
-            <div className="min-h-[3.25rem] px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-sm sm:text-base">
-              <span className="font-semibold text-white shrink-0">Credits</span>
-              <span className="text-[#b8c7d3] text-right">
-                120Hz Arcade Physics · Web Audio Synth
-              </span>
-            </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
 
       {confirmKind === 'stats' && (

@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Award, Check, ChevronLeft, Flame, Gift, Lock, Sparkles } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Award, Check, ChevronLeft, Gift, Lock, Trophy } from 'lucide-react';
 import { ACHIEVEMENTS, CHALLENGES } from '../game/registries';
 import { getArenaCrateStatus } from '../game/progression';
 import { PlayerStats, SaveDataV3 } from '../game/types';
@@ -14,9 +14,36 @@ interface AchievementsScreenProps {
 }
 
 const STREAK_DAYS = 7;
+const CARD = 'rounded-2xl bg-[#14202c] border border-white/10';
+const PRESS =
+  'transition-transform duration-150 active:scale-[0.97] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
+const GOLD_BUTTON = `h-11 px-3.5 rounded-xl bg-[#fbbf24] hover:bg-[#f59e0b] text-[#101922] font-display font-extrabold text-sm shrink-0 tabular-nums ${PRESS}`;
+
+function ProgressBar({ value, max, color }: { value: number; max: number; color: string }) {
+  const shown = Math.min(value, max);
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <div
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={max}
+        aria-valuenow={shown}
+        className="flex-1 h-1.5 rounded-full bg-white/12 overflow-hidden"
+      >
+        <div
+          className={`h-full rounded-full ${color}`}
+          style={{ width: `${Math.min(100, Math.round((shown / max) * 100))}%` }}
+        />
+      </div>
+      <span className="text-xs font-bold text-[#dbe6ee] tabular-nums shrink-0">
+        {shown}/{max}
+      </span>
+    </div>
+  );
+}
 
 function streakReward(day: number): number {
-  return 30 + Math.min(20, Math.max(0, day - 1) * 5);
+  return 5 + Math.min(20, Math.max(0, day - 1) * 5);
 }
 
 function formatCountdown(ms: number): string {
@@ -37,18 +64,16 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
 }) => {
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [burst, setBurst] = useState<number | null>(null);
-  const [achPage, setAchPage] = useState(1);
+  const [tab, setTab] = useState<'awards' | 'achievements'>('awards');
 
-  const ACH_PER_PAGE = 12;
-  const paginatedAchievements = useMemo(
-    () => ACHIEVEMENTS.slice(0, achPage * ACH_PER_PAGE),
-    [achPage]
-  );
-  const hasMore = achPage * ACH_PER_PAGE < ACHIEVEMENTS.length;
+  const burstTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const id = window.setInterval(() => setNowMs(Date.now()), 30000);
-    return () => window.clearInterval(id);
+    return () => {
+      window.clearInterval(id);
+      window.clearTimeout(burstTimer.current);
+    };
   }, []);
 
   const unlockedCount = ACHIEVEMENTS.filter((a) => Boolean(unlocked[a.id])).length;
@@ -67,275 +92,198 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
     onClaimCrate();
     setNowMs(Date.now());
     setBurst(amount);
-    window.setTimeout(() => setBurst(null), 1800);
+    window.clearTimeout(burstTimer.current);
+    burstTimer.current = window.setTimeout(() => setBurst(null), 1800);
   };
 
   return (
-    <div
-      style={{
-        paddingLeft: 'max(1rem, env(safe-area-inset-left))',
-        paddingRight: 'max(1rem, env(safe-area-inset-right))',
-      }}
-      className="fixed inset-0 z-20 flex flex-col bg-[#0d151e]/90 backdrop-blur-md overflow-hidden"
-    >
-      <header
-        style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
-        className="w-full max-w-[min(100%,44rem)] mx-auto pb-3 flex items-center justify-between gap-2 shrink-0"
-      >
-        <button
-          type="button"
-          onClick={onBack}
-          className="min-h-12 min-w-12 px-3 rounded-2xl bg-white/12 border border-white/15 hover:bg-white/18 text-white font-bold text-sm sm:text-base inline-flex items-center gap-1.5 transition-transform active:scale-[0.97] cursor-pointer"
-        >
-          <ChevronLeft className="w-5 h-5 shrink-0" aria-hidden="true" />
-          <span>Back</span>
-        </button>
-        <h1 className="font-display m-0 text-[clamp(1.35rem,4.5vw,1.75rem)] font-extrabold italic tracking-tight text-white [text-wrap:balance]">
-          Achievements
-        </h1>
-        <div className="min-h-10 px-3 rounded-xl bg-[#14202c] border border-white/14 inline-flex items-center text-sm sm:text-base font-extrabold text-[#e2ebf2] tabular-nums shrink-0">
-          {unlockedCount}/{ACHIEVEMENTS.length}
-        </div>
-      </header>
-
-      <div
-        style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
-        className="flex-1 w-full max-w-[min(100%,44rem)] mx-auto safe-scroll pt-1"
-      >
-        {/* Daily login streak + reward */}
-        <div className="rounded-2xl p-4 mb-2.5 bg-[#14202c] border border-[#fbbf24]/35 shadow-md">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span
-                className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${
-                  streakStatus.ready
-                    ? 'bg-[#fbbf24]/20 border-[#fbbf24]/50 text-[#fbbf24]'
-                    : 'bg-white/8 border-white/12 text-[#a9bac6]'
-                }`}
-              >
-                <Flame className="w-5 h-5" aria-hidden="true" />
-              </span>
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="font-display font-extrabold text-base text-white leading-tight">
-                    Daily Login Streak
-                  </span>
-                  <span className="rounded-md bg-[#fbbf24]/18 border border-[#fbbf24]/35 px-1.5 py-0.5 text-[11px] font-extrabold text-[#fde68a] tabular-nums">
-                    Day {streakStatus.nextStreak}
-                  </span>
-                </div>
-                <div className="text-xs sm:text-sm text-[#b8c7d3] leading-snug tabular-nums">
-                  {burst !== null
-                    ? `Claimed +${burst} coins!`
-                    : streakStatus.ready
-                      ? `Log in daily to grow your bonus (+${streakStatus.rewardCoins} coins)`
-                      : `Come back in ${formatCountdown(streakStatus.remainingMs)} for the next reward`}
-                </div>
-              </div>
-            </div>
-
-            {streakStatus.ready ? (
-              <button
-                type="button"
-                onClick={handleClaim}
-                className="min-h-12 px-3.5 rounded-xl bg-[#fbbf24] hover:bg-[#f59e0b] text-[#101922] font-display font-extrabold text-sm inline-flex items-center gap-1.5 shrink-0 shadow-md transition-transform active:scale-[0.97] cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4 shrink-0" aria-hidden="true" />
-                <span className="tabular-nums">+{streakStatus.rewardCoins}</span>
-              </button>
-            ) : (
-              <div className="min-h-12 px-3 rounded-xl bg-white/8 border border-white/12 text-xs font-bold text-[#b8c7d3] inline-flex items-center shrink-0 tabular-nums">
-                {formatCountdown(streakStatus.remainingMs)}
-              </div>
-            )}
+    <div className="fixed inset-0 z-20 flex flex-col bg-[#0d151e]/95 backdrop-blur-md pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]">
+      <div className="w-full max-w-2xl mx-auto shrink-0 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2.5 flex flex-col gap-2.5">
+        <header className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={onBack}
+            aria-label="Back"
+            className={`w-11 h-11 rounded-full bg-[#14202c] border border-white/15 text-white inline-flex items-center justify-center shrink-0 ${PRESS}`}
+          >
+            <ChevronLeft className="w-6 h-6" aria-hidden="true" />
+          </button>
+          <h1 className="font-display m-0 flex-1 min-w-0 text-2xl font-extrabold italic tracking-tight text-white leading-none">
+            Awards
+          </h1>
+          <div className="h-11 px-3 rounded-full bg-[#14202c] border border-white/15 inline-flex items-center text-sm font-extrabold text-[#e2ebf2] tabular-nums shrink-0">
+            {tab === 'awards'
+              ? `${tasksClaimed}/${dailyTasks.length}`
+              : `${unlockedCount}/${ACHIEVEMENTS.length}`}
           </div>
+        </header>
 
-          <div className="grid grid-cols-7 gap-1.5 mt-3.5">
-            {Array.from({ length: STREAK_DAYS }, (_, i) => i + 1).map((day) => {
-              const done = day < currentDay;
-              const active = day === currentDay;
-              const stateClass = done
-                ? 'bg-[#10b981]/20 border-[#10b981]/40 text-[#34d399]'
-                : active && streakStatus.ready
-                  ? 'bg-[#fbbf24] border-[#fbbf24] text-[#101922]'
-                  : active
-                    ? 'bg-[#fbbf24]/20 border-[#fbbf24]/40 text-[#fde68a]'
-                    : 'bg-white/6 border-white/10 text-[#8fa3b0]';
-              return (
-                <div
-                  key={day}
-                  className={`rounded-lg border py-1.5 flex flex-col items-center gap-0.5 ${stateClass}`}
-                >
-                  <span className="text-[10px] font-extrabold uppercase tracking-wide opacity-80">
-                    D{day}
-                  </span>
-                  {done ? (
-                    <Check className="w-4 h-4" aria-hidden="true" />
-                  ) : active ? (
-                    <Gift className="w-4 h-4" aria-hidden="true" />
-                  ) : (
-                    <span className="w-4 h-4 flex items-center justify-center">
-                      <Lock className="w-3 h-3" aria-hidden="true" />
-                    </span>
-                  )}
-                  <span className="text-[10px] font-bold tabular-nums opacity-90">
-                    {streakReward(day)}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+        <div className={`${CARD} grid grid-cols-2 gap-1 p-1`}>
+          {(
+            [
+              ['awards', 'Daily', Gift],
+              ['achievements', 'Achievements', Trophy],
+            ] as const
+          ).map(([id, label, Icon]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setTab(id)}
+              aria-pressed={tab === id}
+              className={`min-h-11 rounded-xl font-display font-extrabold text-sm inline-flex items-center justify-center gap-1.5 ${PRESS} ${
+                tab === id ? 'bg-[#fbbf24] text-[#101922]' : 'text-[#b8c7d3] hover:bg-white/8'
+              }`}
+            >
+              <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
+              <span>{label}</span>
+            </button>
+          ))}
         </div>
+      </div>
 
-        {/* Daily tasks */}
-        <div className="flex items-center justify-between gap-2 px-1 mb-1.5">
-          <h2 className="font-display m-0 text-base font-extrabold text-white">
-            Daily Tasks
-          </h2>
-          <span className="text-xs font-bold text-[#b8c7d3] tabular-nums">
-            {tasksClaimed}/{dailyTasks.length} claimed
-          </span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
-          {dailyTasks.map(({ def, task }) => {
-            const pct = Math.min(100, Math.round((task.progress / def.target) * 100));
-            const complete = task.progress >= def.target;
-            return (
-              <div
-                key={def.id}
-                className={`rounded-2xl p-3.5 flex flex-col gap-2 border shadow-md ${
-                  task.claimed
-                    ? 'bg-[#14202c] border-[#10b981]/45'
-                    : complete
-                      ? 'bg-[#14202c] border-[#fbbf24]/45'
-                      : 'bg-[#14202c]/80 border-white/12'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="font-display font-extrabold text-sm text-white leading-tight">
-                    {def.title}
+      {/* key resets the scroll position when the tab changes */}
+      <div key={tab} className="flex-1 min-h-0 overflow-y-auto">
+        <div className="w-full max-w-2xl mx-auto flex flex-col gap-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          {tab === 'awards' && (
+            <>
+              {/* Daily login streak */}
+              <section className={`${CARD} p-3`}>
+                <div className="flex items-center gap-2.5">
+                  <div className="min-w-0 flex-1" aria-live="polite">
+                    <h2 className="font-display m-0 text-sm font-extrabold text-white leading-tight">
+                      Login streak · Day {streakStatus.nextStreak}
+                    </h2>
+                    <div className="mt-0.5 text-xs text-[#b8c7d3] leading-snug tabular-nums">
+                      {burst !== null
+                        ? `Claimed +${burst} coins!`
+                        : streakStatus.ready
+                          ? 'Ready to claim'
+                          : `Next in ${formatCountdown(streakStatus.remainingMs)}`}
+                    </div>
                   </div>
-                  <span
-                    className={`text-xs font-bold shrink-0 ${
-                      task.claimed
-                        ? 'text-[#34d399]'
-                        : complete
-                          ? 'text-[#fbbf24]'
-                          : 'text-[#8fa3b0]'
+                  {streakStatus.ready && (
+                    <button type="button" onClick={handleClaim} className={GOLD_BUTTON}>
+                      Claim +{streakStatus.rewardCoins}
+                    </button>
+                  )}
+                </div>
+
+                <ol className="list-none m-0 mt-3 p-0 grid grid-cols-7 gap-1">
+                  {Array.from({ length: STREAK_DAYS }, (_, i) => i + 1).map((day) => {
+                    const done = day < currentDay;
+                    const active = day === currentDay;
+                    const stateClass = done
+                      ? 'bg-[#10b981]/20 border-[#10b981]/40 text-[#34d399]'
+                      : active && streakStatus.ready
+                        ? 'bg-[#fbbf24] border-[#fbbf24] text-[#101922]'
+                        : active
+                          ? 'bg-[#fbbf24]/20 border-[#fbbf24]/50 text-[#fde68a]'
+                          : 'bg-white/5 border-white/10 text-[#a9bac6]';
+                    const Icon = done ? Check : active ? Gift : Lock;
+                    return (
+                      <li
+                        key={day}
+                        aria-current={active ? 'step' : undefined}
+                        className={`min-w-0 rounded-lg border py-1.5 flex flex-col items-center gap-1 ${stateClass}`}
+                      >
+                        <span className="text-[11px] font-extrabold leading-none">D{day}</span>
+                        <Icon className="w-3.5 h-3.5" aria-hidden="true" />
+                        <span className="text-[11px] font-bold leading-none tabular-nums">
+                          {streakReward(day)}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </section>
+
+              {/* Daily tasks */}
+              <div className="flex items-center justify-between gap-2 px-1">
+                <h2 className="font-display m-0 text-base font-extrabold text-white">Daily tasks</h2>
+                <span className="text-xs font-bold text-[#b8c7d3] tabular-nums">
+                  {tasksClaimed}/{dailyTasks.length} claimed
+                </span>
+              </div>
+
+              <ul className={`${CARD} list-none m-0 p-0 divide-y divide-white/10`}>
+                {dailyTasks.map(({ def, task }) => {
+                  const complete = task.progress >= def.target;
+                  const claimable = complete && !task.claimed;
+                  return (
+                    <li key={def.id} className="p-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="min-w-0 flex-1">
+                          <div className="font-display font-extrabold text-sm text-white leading-tight">
+                            {def.title}
+                          </div>
+                          <p className="m-0 mt-0.5 text-xs text-[#b8c7d3] leading-snug">{def.desc}</p>
+                        </div>
+                        {claimable ? (
+                          <button type="button" onClick={() => onClaimDailyTask(def.id)} className={GOLD_BUTTON}>
+                            Claim +{def.reward}
+                          </button>
+                        ) : task.claimed ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-bold text-[#34d399] shrink-0">
+                            <Check className="w-4 h-4" aria-hidden="true" />
+                            Claimed
+                          </span>
+                        ) : (
+                          <span className="text-sm font-extrabold text-[#fbbf24] shrink-0 tabular-nums">
+                            +{def.reward}
+                          </span>
+                        )}
+                      </div>
+                      <ProgressBar
+                        value={task.progress}
+                        max={def.target}
+                        color={task.claimed ? 'bg-[#10b981]' : complete ? 'bg-[#fbbf24]' : 'bg-[#f0452d]'}
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
+
+          {tab === 'achievements' && (
+            <ul className="list-none m-0 p-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {ACHIEVEMENTS.map((ach) => {
+                const isUnlocked = Boolean(unlocked[ach.id]);
+                const current = ach.progress ? ach.progress(stats) : isUnlocked ? 1 : 0;
+                const Icon = isUnlocked ? Award : Lock;
+                return (
+                  <li
+                    key={ach.id}
+                    className={`rounded-2xl p-3 flex items-start gap-2.5 bg-[#14202c] border ${
+                      isUnlocked ? 'border-[#10b981]/50' : 'border-white/10'
                     }`}
                   >
-                    {task.claimed ? 'Claimed' : `+${def.reward}`}
-                  </span>
-                </div>
-                <p className="text-xs text-[#b8c7d3] m-0 leading-snug flex-1">{def.desc}</p>
-
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-1.5 rounded-full bg-white/12 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${
-                        task.claimed ? 'bg-[#10b981]' : complete ? 'bg-[#fbbf24]' : 'bg-[#f0452d]'
-                      }`}
-                      style={{ width: `${pct}%` }}
+                    <Icon
+                      className={`w-5 h-5 shrink-0 ${isUnlocked ? 'text-[#34d399]' : 'text-[#a9bac6]'}`}
+                      aria-hidden="true"
                     />
-                  </div>
-                  <span className="text-[11px] font-bold text-[#dbe6ee] tabular-nums shrink-0">
-                    {task.progress}/{def.target}
-                  </span>
-                </div>
-
-                {complete && !task.claimed && (
-                  <button
-                    type="button"
-                    onClick={() => onClaimDailyTask(def.id)}
-                    className="min-h-10 rounded-xl bg-[#fbbf24] hover:bg-[#f59e0b] text-[#101922] font-display font-extrabold text-xs inline-flex items-center justify-center gap-1.5 shadow-md transition-transform active:scale-[0.97] cursor-pointer"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                    <span>Claim +{def.reward}</span>
-                  </button>
-                )}
-                {task.claimed && (
-                  <div className="min-h-10 rounded-xl bg-[#10b981]/15 border border-[#10b981]/40 text-[#34d399] text-xs font-bold inline-flex items-center justify-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                    <span>Reward collected</span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          {paginatedAchievements.map((ach) => {
-            const isUnlocked = Boolean(unlocked[ach.id]);
-            const current = ach.progress ? ach.progress(stats) : isUnlocked ? 1 : 0;
-            const target = ach.target ?? 1;
-            const pct = Math.min(100, Math.round((current / target) * 100));
-
-            return (
-              <div
-                key={ach.id}
-                className={`rounded-2xl p-4 flex items-start gap-3.5 border shadow-md ${
-                  isUnlocked
-                    ? 'bg-[#14202c] border-[#10b981]/45'
-                    : 'bg-[#14202c]/80 border-white/12'
-                }`}
-              >
-                <div
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${
-                    isUnlocked
-                      ? 'bg-[#10b981]/20 border-[#10b981]/40 text-[#34d399]'
-                      : 'bg-white/8 border-white/10 text-[#b8c7d3]'
-                  }`}
-                >
-                  {isUnlocked ? (
-                    <Award className="w-5 h-5" aria-hidden="true" />
-                  ) : (
-                    <Lock className="w-5 h-5" aria-hidden="true" />
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="font-display font-extrabold text-base text-white leading-tight">
-                      {ach.name}
-                    </div>
-                    <span
-                      className={`text-xs font-bold shrink-0 ${
-                        isUnlocked ? 'text-[#34d399]' : 'text-[#fbbf24]'
-                      }`}
-                    >
-                      {isUnlocked ? 'Unlocked' : '+5 coins'}
-                    </span>
-                  </div>
-                  <p className="text-xs sm:text-sm text-[#b8c7d3] mt-1 m-0 leading-snug">
-                    {ach.desc}
-                  </p>
-
-                  {ach.target && !isUnlocked && (
-                    <div className="mt-2.5 flex items-center gap-2.5">
-                      <div className="flex-1 h-1.5 rounded-full bg-white/12 overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-[#f0452d]"
-                          style={{ width: `${pct}%` }}
-                        />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 font-display font-extrabold text-sm text-white leading-tight">
+                          {ach.name}
+                        </div>
+                        <span
+                          className={`text-xs font-bold shrink-0 ${
+                            isUnlocked ? 'text-[#34d399]' : 'text-[#fbbf24]'
+                          }`}
+                        >
+                          {isUnlocked ? 'Unlocked' : '+5 coins'}
+                        </span>
                       </div>
-                      <span className="text-xs font-bold text-[#dbe6ee] tabular-nums">
-                        {current}/{target}
-                      </span>
+                      <p className="m-0 mt-0.5 text-xs text-[#b8c7d3] leading-snug">{ach.desc}</p>
+                      {ach.target && !isUnlocked ? (
+                        <ProgressBar value={current} max={ach.target} color="bg-[#f0452d]" />
+                      ) : null}
                     </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-          {hasMore && (
-            <button
-              type="button"
-              onClick={() => setAchPage((p) => p + 1)}
-              className="w-full py-2.5 rounded-xl border border-white/20 bg-white/5 text-white font-bold text-sm hover:bg-white/10 active:bg-white/10 transition-colors"
-            >
-              Load more ({ACHIEVEMENTS.length - paginatedAchievements.length} remaining)
-            </button>
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
       </div>

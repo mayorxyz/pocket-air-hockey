@@ -74,10 +74,10 @@ export const HowToScreen: React.FC<HowToScreenProps> = ({
 
           <section className="rounded-2xl bg-[#14202c]/95 border border-white/14 p-4 shadow-lg">
             <h2 className="font-display font-extrabold text-lg text-white mb-1">
-              Coins, Crates &amp; Unlocks
+              Coins, Rewards &amp; Unlocks
             </h2>
             <p className="text-[#b8c7d3] m-0">
-              Claim the free Arena Crate every 6 hours, clear Stages, and complete Daily Challenges
+              Claim your free Daily Login Reward every 24 hours, clear Stages, and complete Daily Challenges
               to unlock new table shapes, pucks, and mallets.
             </p>
           </section>

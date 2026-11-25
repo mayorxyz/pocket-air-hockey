@@ -21,6 +21,78 @@ interface ModesScreenProps {
   onBack: () => void;
 }
 
+const HEADING =
+  'font-display m-0 mb-1.5 px-1 text-xs font-extrabold uppercase tracking-wide text-[#b8c7d3]';
+const PRESS =
+  'transition-transform duration-150 active:scale-[0.97] cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#fbbf24]';
+
+function Segmented<T extends string | number>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: ReadonlyArray<readonly [T, string]>;
+  onChange: (next: T) => void;
+}) {
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      className="flex flex-wrap gap-1 p-1 rounded-2xl bg-[#14202c] border border-white/10"
+    >
+      {options.map(([val, text]) => (
+        <button
+          key={val}
+          type="button"
+          onClick={() => onChange(val)}
+          aria-pressed={value === val}
+          className={`flex-auto basis-0 min-w-fit min-h-11 px-2.5 py-1 rounded-xl text-sm font-bold leading-tight tabular-nums ${PRESS} ${
+            value === val ? 'bg-white text-[#101922]' : 'text-[#b8c7d3] hover:text-white'
+          }`}
+        >
+          {text}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function OptionCard({
+  title,
+  desc,
+  active,
+  onClick,
+}: {
+  title: string;
+  desc: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`min-w-0 min-h-16 p-2.5 rounded-2xl text-left border-2 flex flex-col justify-start ${PRESS} ${
+        active
+          ? 'bg-white text-[#101922] border-[#f0452d]'
+          : 'bg-[#14202c] border-white/10 text-white hover:bg-[#1e2f40]'
+      }`}
+    >
+      <span className="flex w-full items-start justify-between gap-1">
+        <span className="min-w-0 font-display font-extrabold text-sm leading-tight">{title}</span>
+        {active && <Check className="w-4 h-4 shrink-0 text-[#c9301a] stroke-[3]" aria-hidden="true" />}
+      </span>
+      <span className={`mt-1 text-xs leading-snug ${active ? 'text-[#2b4054]' : 'text-[#b8c7d3]'}`}>
+        {desc}
+      </span>
+    </button>
+  );
+}
+
 export const ModesScreen: React.FC<ModesScreenProps> = ({
   opponentType,
   modeId,
@@ -44,254 +116,126 @@ export const ModesScreen: React.FC<ModesScreenProps> = ({
   );
 
   return (
-    <div
-      style={{
-        paddingLeft: 'max(1rem, env(safe-area-inset-left))',
-        paddingRight: 'max(1rem, env(safe-area-inset-right))',
-      }}
-      className="fixed inset-0 z-20 flex flex-col bg-[#0d151e]/90 backdrop-blur-md overflow-hidden"
-    >
-      <header
-        style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
-        className="w-full max-w-[min(100%,40rem)] mx-auto pb-3 flex items-center justify-between gap-2 shrink-0"
-      >
-        <button
-          type="button"
-          onClick={onBack}
-          className="min-h-12 min-w-12 px-3 rounded-2xl bg-white/12 border border-white/15 hover:bg-white/18 text-white font-bold text-sm sm:text-base inline-flex items-center gap-1.5 transition-transform active:scale-[0.97] cursor-pointer"
-        >
-          <ChevronLeft className="w-5 h-5 shrink-0" aria-hidden="true" />
-          <span>Back</span>
-        </button>
-        <h1 className="font-display m-0 text-[clamp(1.35rem,4.5vw,1.75rem)] font-extrabold italic tracking-tight text-white [text-wrap:balance]">
-          Match Setup
-        </h1>
-        <div className="min-w-12 sm:min-w-[4.5rem]" aria-hidden="true" />
-      </header>
-
-      <div
-        style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
-        className="flex-1 w-full max-w-[min(100%,40rem)] mx-auto safe-scroll space-y-5 pt-1"
-      >
-        {/* Opponent Type Segmented Switch */}
-        <div className="flex gap-1.5 p-1.5 bg-[#14202c]/95 border border-white/14 rounded-2xl">
-          {(
-            [
-              ['ai', 'vs Bot'],
-              ['two', '2 Players'],
-            ] as const
-          ).map(([val, label]) => {
-            const active = opponentType === val;
-            return (
-              <button
-                key={val}
-                type="button"
-                onClick={() => onChangeOpponentType(val)}
-                aria-pressed={active}
-                className={`flex-1 min-h-12 px-3 rounded-xl text-sm sm:text-base font-bold inline-flex items-center justify-center gap-1.5 transition cursor-pointer border ${
-                  active
-                    ? 'bg-white text-[#101922] border-white shadow-sm'
-                    : 'bg-transparent border-transparent text-[#b8c7d3] hover:text-white'
-                }`}
-              >
-                {active && <Check className="w-4 h-4 shrink-0" aria-hidden="true" />}
-                <span>{label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Game Mode */}
-        <section>
-          <div className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#b8c7d3] mb-2">
-            Game mode
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {availableModes.map((m) => {
-              const active = m.id === modeId;
-              const desc =
-                m.winCondition === 'score'
-                  ? m.obstacles
-                    ? m.desc
-                    : `First to ${winScore} goals wins`
-                  : m.desc;
-              return (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => onSelectMode(m.id)}
-                  aria-pressed={active}
-                  className={`w-full min-h-[3.75rem] px-3.5 py-2.5 rounded-2xl text-left border transition cursor-pointer flex items-center justify-between gap-3 ${
-                    active
-                      ? 'bg-white text-[#101922] border-[#f0452d] ring-2 ring-[#f0452d]/60'
-                      : 'bg-[#14202c]/95 border-white/14 text-white hover:bg-[#1e2f40]'
-                  }`}
-                >
-                  <div className="min-w-0">
-                    <div className="font-display font-extrabold text-base leading-tight">
-                      {m.name}
-                    </div>
-                    <div
-                      className={`text-xs sm:text-sm mt-0.5 leading-snug ${
-                        active ? 'text-[#2b4054]' : 'text-[#b8c7d3]'
-                      }`}
-                    >
-                      {desc}
-                    </div>
-                  </div>
-                  <span
-                    className={`w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center ${
-                      active ? 'border-[#f0452d] bg-[#f0452d]' : 'border-white/35'
-                    }`}
-                  >
-                    {active && <Check className="w-3 h-3 text-white stroke-[3]" aria-hidden="true" />}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-        {modeId === 'timed' && (
-          <section>
-            <div className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#b8c7d3] mb-2">
-              Match timer
-            </div>
-            <div className="flex gap-1.5 p-1.5 bg-[#14202c]/95 border border-white/14 rounded-2xl">
-              {([2, 3] as const).map((mins) => {
-                const active = timedMinutes === mins;
-                return (
-                  <button
-                    key={mins}
-                    type="button"
-                    onClick={() => onSelectTimedMinutes(mins)}
-                    aria-pressed={active}
-                    className={`flex-1 min-h-12 rounded-xl text-sm sm:text-base font-bold inline-flex items-center justify-center gap-1.5 transition cursor-pointer tabular-nums border ${
-                      active
-                        ? 'bg-white text-[#101922] border-white shadow-sm'
-                        : 'bg-transparent border-transparent text-[#b8c7d3] hover:text-white'
-                    }`}
-                  >
-                    {active && <Check className="w-4 h-4 shrink-0" aria-hidden="true" />}
-                    <span>{mins}:00</span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {modeId === 'obstacles' && (
-          <section>
-            <div className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#b8c7d3] mb-2">
-              Obstacle layout
-            </div>
-            <div className="flex flex-wrap gap-1.5 p-1.5 bg-[#14202c]/95 border border-white/14 rounded-2xl">
-              {Object.values(OBSTACLE_LAYOUTS).map((layout) => {
-                const active = obstacleLayoutId === layout.id;
-                return (
-                  <button
-                    key={layout.id}
-                    type="button"
-                    onClick={() => onSelectObstacleLayout(layout.id)}
-                    aria-pressed={active}
-                    className={`flex-1 min-w-[6.5rem] min-h-12 px-2.5 rounded-xl text-sm font-bold inline-flex items-center justify-center gap-1.5 transition cursor-pointer border ${
-                      active
-                        ? 'bg-white text-[#101922] border-white shadow-sm'
-                        : 'bg-transparent border-transparent text-[#b8c7d3] hover:text-white'
-                    }`}
-                  >
-                    {active && <Check className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />}
-                    <span>{layout.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {opponentType === 'ai' && modeCfg.opponent && (
-          <>
-            <section>
-              <div className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#b8c7d3] mb-2">
-                Bot difficulty
-              </div>
-              <div className="flex gap-1.5 p-1.5 bg-[#14202c]/95 border border-white/14 rounded-2xl">
-                {(['easy', 'medium', 'hard'] as const).map((key) => {
-                  const active = difficulty === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => onSelectDifficulty(key)}
-                      aria-pressed={active}
-                      className={`flex-1 min-h-12 px-2 rounded-xl text-sm sm:text-base font-bold capitalize inline-flex items-center justify-center gap-1.5 transition cursor-pointer border ${
-                        active
-                          ? 'bg-white text-[#101922] border-white shadow-sm'
-                          : 'bg-transparent border-transparent text-[#b8c7d3] hover:text-white'
-                      }`}
-                    >
-                      {active && <Check className="w-4 h-4 shrink-0" aria-hidden="true" />}
-                      <span>{key}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-
-            <section>
-              <div className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#b8c7d3] mb-2">
-                Bot personality
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {Object.values(PERSONALITIES).map((p) => {
-                  const active = p.id === personality;
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => onSelectPersonality(p.id)}
-                      aria-pressed={active}
-                      className={`min-h-[4rem] p-3 rounded-2xl text-left border transition cursor-pointer flex items-start justify-between gap-2 ${
-                        active
-                          ? 'bg-white text-[#101922] border-[#f0452d] ring-2 ring-[#f0452d]/60'
-                          : 'bg-[#14202c]/95 border-white/14 text-white hover:bg-[#1e2f40]'
-                      }`}
-                    >
-                      <div className="min-w-0">
-                        <div className="font-display font-extrabold text-base leading-tight">
-                          {p.name}
-                        </div>
-                        <div
-                          className={`text-xs mt-1 leading-snug ${
-                            active ? 'text-[#2b4054]' : 'text-[#b8c7d3]'
-                          }`}
-                        >
-                          {p.desc}
-                        </div>
-                      </div>
-                      {active && (
-                        <span className="w-5 h-5 rounded-full bg-[#f0452d] text-white flex items-center justify-center shrink-0 mt-0.5">
-                          <Check className="w-3 h-3 stroke-[3]" aria-hidden="true" />
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          </>
-        )}
-
-        <div className="pt-1">
+    <div className="fixed inset-0 z-20 flex flex-col bg-[#0d151e]/95 backdrop-blur-md">
+      <div className="w-full max-w-xl mx-auto shrink-0 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2.5 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] flex flex-col gap-2.5">
+        <header className="flex items-center gap-2.5">
           <button
             type="button"
-            onClick={onStartMatch}
-            className="w-full min-h-[3.5rem] rounded-2xl bg-[#f0452d] hover:bg-[#e13c24] border border-white/18 active:scale-[0.98] text-white font-display font-extrabold text-[clamp(1.05rem,3vw,1.25rem)] transition-transform cursor-pointer shadow-lg"
+            onClick={onBack}
+            aria-label="Back"
+            className={`w-11 h-11 rounded-full bg-[#14202c] border border-white/15 text-white inline-flex items-center justify-center shrink-0 ${PRESS}`}
           >
-            Start Match
+            <ChevronLeft className="w-6 h-6" aria-hidden="true" />
           </button>
+          <h1 className="font-display m-0 flex-1 min-w-0 text-2xl font-extrabold italic tracking-tight text-white leading-none">
+            Match Setup
+          </h1>
+        </header>
+        <Segmented<GameMode>
+          label="Opponent"
+          value={opponentType}
+          options={[
+            ['ai', 'vs Bot'],
+            ['two', '2 Players'],
+          ]}
+          onChange={onChangeOpponentType}
+        />
+      </div>
+
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="w-full max-w-xl mx-auto flex flex-col gap-3.5 pb-2 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]">
+          <section>
+            <h2 className={HEADING}>Game mode</h2>
+            <div className="grid grid-cols-2 gap-2">
+              {availableModes.map((m) => (
+                <OptionCard
+                  key={m.id}
+                  title={m.name}
+                  desc={
+                    m.winCondition === 'score' && !m.obstacles
+                      ? `First to ${winScore} goals wins`
+                      : m.desc
+                  }
+                  active={m.id === modeId}
+                  onClick={() => onSelectMode(m.id)}
+                />
+              ))}
+            </div>
+          </section>
+
+          {modeId === 'timed' && (
+            <section>
+              <h2 className={HEADING}>Match timer</h2>
+              <Segmented<2 | 3>
+                label="Match timer"
+                value={timedMinutes}
+                options={[
+                  [2, '2:00'],
+                  [3, '3:00'],
+                ]}
+                onChange={onSelectTimedMinutes}
+              />
+            </section>
+          )}
+
+          {modeId === 'obstacles' && (
+            <section>
+              <h2 className={HEADING}>Obstacle layout</h2>
+              <Segmented<string>
+                label="Obstacle layout"
+                value={obstacleLayoutId}
+                options={Object.values(OBSTACLE_LAYOUTS).map(
+                  (layout) => [layout.id, layout.name] as const
+                )}
+                onChange={onSelectObstacleLayout}
+              />
+            </section>
+          )}
+
+          {opponentType === 'ai' && modeCfg.opponent && (
+            <>
+              <section>
+                <h2 className={HEADING}>Bot difficulty</h2>
+                <Segmented<Difficulty>
+                  label="Bot difficulty"
+                  value={difficulty}
+                  options={[
+                    ['easy', 'Easy'],
+                    ['medium', 'Medium'],
+                    ['hard', 'Hard'],
+                  ]}
+                  onChange={onSelectDifficulty}
+                />
+              </section>
+
+              <section>
+                <h2 className={HEADING}>Bot personality</h2>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.values(PERSONALITIES).map((p) => (
+                    <OptionCard
+                      key={p.id}
+                      title={p.name}
+                      desc={p.desc}
+                      active={p.id === personality}
+                      onClick={() => onSelectPersonality(p.id)}
+                    />
+                  ))}
+                </div>
+              </section>
+            </>
+          )}
         </div>
+      </div>
+
+      {/* Always visible, docked to the bottom */}
+      <div className="shrink-0 border-t border-white/10 bg-[#14202c] pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]">
+        <button
+          type="button"
+          onClick={onStartMatch}
+          className={`block w-full max-w-xl mx-auto min-h-12 rounded-2xl bg-[#c9301a] hover:bg-[#b02a16] text-white font-display font-extrabold text-lg ${PRESS}`}
+        >
+          Start Match
+        </button>
       </div>
     </div>
   );
