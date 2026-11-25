@@ -1,4 +1,4 @@
-import React, { useId, useMemo, useState } from 'react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
   Bird,
   Bot,
@@ -37,6 +37,10 @@ import {
   TableSkin,
 } from '../game/skins';
 import { buildTableGeometry } from '../game/tableGeometry';
+import { drawPuckDesign } from '../game/puckDesigns';
+import { isExtraPuck } from '../game/puckSkins';
+import { drawMalletDesign } from '../game/malletDesigns';
+import { isExtraMallet } from '../game/malletSkins';
 import { SaveDataV3 } from '../game/types';
 import { ConfirmDialog } from './ConfirmDialog';
 import { LiveArenaPreview } from './LiveArenaPreview';
@@ -271,52 +275,130 @@ const PUCK_EMBLEM_ICONS: Partial<
 
 const PuckPreview: React.FC<{ skin: PuckSkin }> = ({ skin }) => {
   const EmblemIcon = skin.emblem ? PUCK_EMBLEM_ICONS[skin.emblem] : undefined;
+  const designEmblem =
+    skin.emblem && isExtraPuck(skin.emblem) ? skin.emblem : undefined;
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    if (!designEmblem || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const size = 32;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    const c = canvas.getContext('2d');
+    if (!c) return;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.clearRect(0, 0, size, size);
+    drawPuckDesign(c, designEmblem, size / 2, size / 2, size / 2 - 1, {
+      body: skin.body,
+      ring: skin.ring,
+      accent: skin.accent ?? skin.ring,
+      accent2: skin.accent2 ?? skin.body,
+    });
+  }, [designEmblem, skin.body, skin.ring, skin.accent, skin.accent2]);
+
   return (
     <div className="w-12 h-12 rounded-xl bg-[#0d151e]/70 border border-white/12 flex items-center justify-center shrink-0">
-      <div
-        className="relative w-8 h-8 rounded-full flex items-center justify-center ring-1 ring-white/25"
-        style={{
-          backgroundColor: skin.body,
-          boxShadow: skin.glow ? `0 0 10px ${skin.glow}` : undefined,
-        }}
-      >
-        <div className="w-5 h-5 rounded-full border-2" style={{ borderColor: skin.ring }} />
-        {skin.emblem === 'seven' ? (
-          <span
-            className="absolute text-[10px] font-black leading-none"
-            style={{ color: skin.ring }}
-            aria-hidden="true"
-          >
-            7
-          </span>
-        ) : EmblemIcon ? (
-          <EmblemIcon className="absolute w-3 h-3" style={{ color: skin.ring }} aria-hidden={true} />
-        ) : null}
-        <div
-          className="absolute top-1.5 left-1.5 w-1.5 h-1.5 rounded-full"
-          style={{ backgroundColor: skin.gloss }}
+      {designEmblem ? (
+        <canvas
+          ref={canvasRef}
+          className="w-8 h-8"
+          style={{ width: 32, height: 32, filter: skin.glow ? `drop-shadow(0 0 5px ${skin.glow})` : undefined }}
         />
-      </div>
+      ) : (
+        <div
+          className="relative w-8 h-8 rounded-full flex items-center justify-center ring-1 ring-white/25"
+          style={{
+            backgroundColor: skin.body,
+            boxShadow: skin.glow ? `0 0 10px ${skin.glow}` : undefined,
+          }}
+        >
+          <div className="w-5 h-5 rounded-full border-2" style={{ borderColor: skin.ring }} />
+          {skin.emblem === 'seven' ? (
+            <span
+              className="absolute text-[10px] font-black leading-none"
+              style={{ color: skin.ring }}
+              aria-hidden="true"
+            >
+              7
+            </span>
+          ) : EmblemIcon ? (
+            <EmblemIcon className="absolute w-3 h-3" style={{ color: skin.ring }} aria-hidden={true} />
+          ) : null}
+          <div
+            className="absolute top-1.5 left-1.5 w-1.5 h-1.5 rounded-full"
+            style={{ backgroundColor: skin.gloss }}
+          />
+        </div>
+      )}
     </div>
   );
 };
 
+const MalletDesignCanvas: React.FC<{ skin: MalletSkin; teamColor: string }> = ({
+  skin,
+  teamColor,
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const design = skin.design && isExtraMallet(skin.design) ? skin.design : undefined;
+
+  useEffect(() => {
+    if (!design || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const size = 24;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    const c = canvas.getContext('2d');
+    if (!c) return;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.clearRect(0, 0, size, size);
+    drawMalletDesign(
+      c,
+      design,
+      size / 2,
+      size / 2,
+      size / 2 - 1,
+      {
+        body: skin.body ?? skin.p1dark,
+        ring: skin.ring,
+        accent: skin.accent ?? skin.ring,
+        accent2: skin.accent2 ?? skin.p1dark,
+      },
+      teamColor,
+    );
+  }, [design, skin.body, skin.ring, skin.accent, skin.accent2, skin.p1dark, teamColor]);
+
+  return <canvas ref={canvasRef} style={{ width: 24, height: 24 }} />;
+};
+
 const MalletPreview: React.FC<{ skin: MalletSkin }> = ({ skin }) => {
   const glowStyle = skin.glow ? { boxShadow: `0 0 8px ${skin.glow}` } : undefined;
+  const isDesign = skin.design && isExtraMallet(skin.design);
   return (
     <div className="w-14 h-12 rounded-xl bg-[#0d151e]/70 border border-white/12 flex items-center justify-center gap-1.5 shrink-0">
-      <div
-        className="w-5.5 h-5.5 rounded-full flex items-center justify-center"
-        style={{ backgroundColor: skin.p1, border: `2px solid ${skin.ring}`, ...glowStyle }}
-      >
-        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: skin.p1dark }} />
-      </div>
-      <div
-        className="w-5.5 h-5.5 rounded-full flex items-center justify-center"
-        style={{ backgroundColor: skin.p2, border: `2px solid ${skin.ring}`, ...glowStyle }}
-      >
-        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: skin.p2dark }} />
-      </div>
+      {isDesign ? (
+        <>
+          <MalletDesignCanvas skin={skin} teamColor={skin.p1} />
+          <MalletDesignCanvas skin={skin} teamColor={skin.p2} />
+        </>
+      ) : (
+        <>
+          <div
+            className="w-5.5 h-5.5 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: skin.p1, border: `2px solid ${skin.ring}`, ...glowStyle }}
+          >
+            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: skin.p1dark }} />
+          </div>
+          <div
+            className="w-5.5 h-5.5 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: skin.p2, border: `2px solid ${skin.ring}`, ...glowStyle }}
+          >
+            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: skin.p2dark }} />
+          </div>
+        </>
+      )}
     </div>
   );
 };

@@ -7,9 +7,20 @@ import {
   PowerupEffectsState,
   PowerupId,
 } from './registries';
-import { getMalletSkin, getPuckSkin, getTableSkin, isLightSurface, TableSkin } from './skins';
+import {
+  getMalletSkin,
+  getPuckSkin,
+  getTableSkin,
+  isLightSurface,
+  resolveTableSkin,
+  TableSkin,
+} from './skins';
 import { drawPuckEmblem } from './puckEmblems';
+import { drawPuckDesign } from './puckDesigns';
+import { isExtraPuck } from './puckSkins';
 import { drawMalletPattern } from './malletPatterns';
+import { drawMalletDesign } from './malletDesigns';
+import { isExtraMallet } from './malletSkins';
 import {
   buildTableGeometry,
   isAngleInArc,
@@ -342,8 +353,9 @@ export class AirHockeyEngine {
 
   private getActiveTableSkin() {
     if (this.tutorialStep > 0) return getTableSkin('classic_ice');
-    return getTableSkin(
-      this.activeStage ? this.activeStage.skinOverride.table : this.settings.tableSkin
+    return resolveTableSkin(
+      this.settings.tableSkin,
+      this.activeStage?.skinOverride.table
     );
   }
 
@@ -2173,40 +2185,65 @@ export class AirHockeyEngine {
       this.circle(m.x + 3, m.y + 7, mr);
     }
 
-    ctx.save();
-    if (malletSkin.glow && this.effectiveQuality() === 'high' && !this.isReducedMotion()) {
-      ctx.shadowColor = malletSkin.glow;
-      ctx.shadowBlur = 14;
-    }
-    ctx.fillStyle = color;
-    this.circle(m.x, m.y, mr);
-    ctx.restore();
+    const design = malletSkin.design;
 
-    if (malletSkin.pattern) {
+    if (design && isExtraMallet(design)) {
       ctx.save();
-      ctx.translate(m.x, m.y);
-      drawMalletPattern(ctx, malletSkin.pattern, malletSkin.accent ?? malletSkin.ring, mr);
+      if (malletSkin.glow && this.effectiveQuality() === 'high' && !this.isReducedMotion()) {
+        ctx.shadowColor = malletSkin.glow;
+        ctx.shadowBlur = 14;
+      }
+      drawMalletDesign(
+        ctx,
+        design,
+        m.x,
+        m.y,
+        mr,
+        {
+          body: malletSkin.body ?? color,
+          ring: malletSkin.ring,
+          accent: malletSkin.accent ?? malletSkin.ring,
+          accent2: malletSkin.accent2 ?? dark,
+        },
+        color,
+      );
       ctx.restore();
+    } else {
+      ctx.save();
+      if (malletSkin.glow && this.effectiveQuality() === 'high' && !this.isReducedMotion()) {
+        ctx.shadowColor = malletSkin.glow;
+        ctx.shadowBlur = 14;
+      }
+      ctx.fillStyle = color;
+      this.circle(m.x, m.y, mr);
+      ctx.restore();
+
+      if (malletSkin.pattern) {
+        ctx.save();
+        ctx.translate(m.x, m.y);
+        drawMalletPattern(ctx, malletSkin.pattern, malletSkin.accent ?? malletSkin.ring, mr);
+        ctx.restore();
+      }
+
+      // High-contrast outer rim derived from table surface luminance
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = lightSurface ? 'rgba(16, 25, 34, 0.28)' : 'rgba(255, 255, 255, 0.24)';
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, mr - 0.75, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = frozen ? '#38bdf8' : malletSkin.ring;
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, mr * 0.74, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = dark;
+      this.circle(m.x, m.y, mr * 0.44);
+
+      ctx.fillStyle = malletSkin.gloss;
+      this.circle(m.x - 5, m.y - 6, mr * 0.14);
     }
-
-    // High-contrast outer rim derived from table surface luminance
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = lightSurface ? 'rgba(16, 25, 34, 0.28)' : 'rgba(255, 255, 255, 0.24)';
-    ctx.beginPath();
-    ctx.arc(m.x, m.y, mr - 0.75, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = frozen ? '#38bdf8' : malletSkin.ring;
-    ctx.beginPath();
-    ctx.arc(m.x, m.y, mr * 0.74, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.fillStyle = dark;
-    this.circle(m.x, m.y, mr * 0.44);
-
-    ctx.fillStyle = malletSkin.gloss;
-    this.circle(m.x - 5, m.y - 6, mr * 0.14);
 
     if (frozen) {
       ctx.lineWidth = 3;
@@ -2238,25 +2275,41 @@ export class AirHockeyEngine {
     this.circle(p.x, p.y, PR);
     ctx.restore();
 
-    // Adaptive outer contrast rim so light/dark pucks stay distinct on every table skin
-    ctx.lineWidth = 1.4;
-    ctx.strokeStyle = lightSurface ? 'rgba(16, 25, 34, 0.34)' : 'rgba(255, 255, 255, 0.26)';
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, PR - 0.7, 0, Math.PI * 2);
-    ctx.stroke();
+    const designEmblem =
+      puckSkin.emblem && isExtraPuck(puckSkin.emblem) ? puckSkin.emblem : undefined;
 
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = puckSkin.ring;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, PR - 5, 0, Math.PI * 2);
-    ctx.stroke();
-
-    if (puckSkin.emblem) {
+    if (designEmblem) {
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(this.isReducedMotion() ? 0 : p.spinAngle);
-      drawPuckEmblem(ctx, puckSkin.emblem, puckSkin.ring, puckSkin.body);
+      drawPuckDesign(ctx, designEmblem, 0, 0, PR, {
+        body: puckSkin.body,
+        ring: puckSkin.ring,
+        accent: puckSkin.accent ?? puckSkin.ring,
+        accent2: puckSkin.accent2 ?? puckSkin.body,
+      });
       ctx.restore();
+    } else {
+      // Adaptive outer contrast rim so light/dark pucks stay distinct on every table skin
+      ctx.lineWidth = 1.4;
+      ctx.strokeStyle = lightSurface ? 'rgba(16, 25, 34, 0.34)' : 'rgba(255, 255, 255, 0.26)';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, PR - 0.7, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = puckSkin.ring;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, PR - 5, 0, Math.PI * 2);
+      ctx.stroke();
+
+      if (puckSkin.emblem) {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(this.isReducedMotion() ? 0 : p.spinAngle);
+        drawPuckEmblem(ctx, puckSkin.emblem, puckSkin.ring, puckSkin.body);
+        ctx.restore();
+      }
     }
 
     // Dynamic curve spin rim arcs when spin is noticeable

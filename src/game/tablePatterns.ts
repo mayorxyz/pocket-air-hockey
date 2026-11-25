@@ -1,5 +1,5 @@
 import { isLightSurface, TableSkin } from './skins';
-import { drawSportPattern, SportPattern } from './sportPatterns';
+import { drawSportPattern, isSportPattern } from './sportPatterns';
 
 export function drawTablePattern(
   g: CanvasRenderingContext2D,
@@ -9,15 +9,8 @@ export function drawTablePattern(
 ): void {
   const pattern = tableSkin.pattern;
 
-  if (
-    pattern === 'football_pitch' ||
-    pattern === 'basketball_court' ||
-    pattern === 'table_tennis' ||
-    pattern === 'volleyball_court' ||
-    pattern === 'tennis_clay' ||
-    pattern === 'ice_rink'
-  ) {
-    drawSportPattern(g, pattern as SportPattern, W, H, tableSkin);
+  if (isSportPattern(pattern)) {
+    drawSportPattern(g, pattern, W, H, tableSkin);
     return;
   }
 

@@ -1,3 +1,32 @@
+import { EXTRA_PUCKS } from './puckSkins';
+import type { ExtraPuckId } from './puckSkins';
+import { EXTRA_MALLETS } from './malletSkins';
+import type { ExtraMalletId } from './malletSkins';
+
+export type PuckEmblem =
+  | 'crown'
+  | 'star'
+  | 'clown'
+  | 'skull'
+  | 'heart'
+  | 'bolt'
+  | 'eye'
+  | 'seven'
+  | 'moon'
+  | 'devil'
+  | 'smile'
+  | 'phoenix'
+  | 'dragon'
+  | 'scythe'
+  | 'jester'
+  | 'robot'
+  | 'cat'
+  | 'snowflake'
+  | 'flame'
+  | 'fang'
+  | 'orbit'
+  | ExtraPuckId;
+
 export type SkinUnlockRule =
   | { type: 'coins'; price: number }
   | { type: 'wins'; n: number }
@@ -38,6 +67,25 @@ export type TablePattern =
   | 'badminton_court'
   | 'rugby_field'
   | 'running_track';
+
+export type MalletPattern =
+  | 'carbon_edge'
+  | 'flame_sweep'
+  | 'scale_mesh'
+  | 'diamond_harlequin'
+  | 'frost_crack'
+  | 'toxin_drip'
+  | 'circuit_plate'
+  | 'scar_etch'
+  | 'aurora_wave'
+  | 'eclipse_ring'
+  | 'candy_swirl'
+  | 'forged_metal'
+  | 'void_slash'
+  | 'reef_wave'
+  | 'lightning_arc'
+  | 'honeycomb';
+
 export function isLightSurface(hex: string): boolean {
   const clean = hex.replace('#', '');
   if (clean.length !== 6) return false;
@@ -81,7 +129,9 @@ export interface PuckSkin {
   gloss: string;
   trailRgb: string;
   glow?: string;
-  emblem?: 'crown';
+  accent?: string;
+  accent2?: string;
+  emblem?: PuckEmblem;
   locked?: boolean;
   unlock?: SkinUnlockRule;
 }
@@ -96,6 +146,12 @@ export interface MalletSkin {
   ring: string;
   gloss: string;
   shadow: string;
+  body?: string;
+  accent?: string;
+  accent2?: string;
+  glow?: string;
+  pattern?: MalletPattern;
+  design?: ExtraMalletId;
   locked?: boolean;
   unlock?: SkinUnlockRule;
 }
@@ -107,6 +163,29 @@ export interface SkinsRegistry {
   puck: Record<string, PuckSkin>;
   mallet: Record<string, MalletSkin>;
 }
+
+const EXTRA_MALLET_SKINS: Record<string, MalletSkin> = Object.fromEntries(
+  Object.entries(EXTRA_MALLETS).map(([key, m]) => [
+    key,
+    {
+      id: m.id,
+      name: m.name,
+      p1: m.accent,
+      p1dark: m.body,
+      p2: m.accent2,
+      p2dark: m.body,
+      ring: m.ring,
+      gloss: 'rgba(255, 255, 255, 0.35)',
+      shadow: 'rgba(0, 0, 0, 0.35)',
+      body: m.body,
+      accent: m.accent,
+      accent2: m.accent2,
+      design: key as ExtraMalletId,
+      locked: m.locked,
+      unlock: m.unlock,
+    },
+  ]),
+);
 
 export const SKINS: SkinsRegistry = {
   table: {
@@ -1125,7 +1204,7 @@ export const SKINS: SkinsRegistry = {
       locked: true,
       unlock: { type: 'stage', stageId: 100, label: 'Beat Stage 100' },
     },
-    
+    ...EXTRA_PUCKS,
   },
   mallet: {
     classic: {
@@ -1304,12 +1383,20 @@ export const SKINS: SkinsRegistry = {
       locked: true,
       unlock: { type: 'stage', stageId: 100, label: 'Beat Stage 100' },
     },
-    
+    ...EXTRA_MALLET_SKINS,
   },
 };
 
 export function getTableSkin(id: string): TableSkin {
   return SKINS.table[id] ?? SKINS.table.classic_ice;
+}
+
+/** Use the selected skin's appearance while retaining a stage's table geometry. */
+export function resolveTableSkin(selectedId: string, stageSkinId?: string): TableSkin {
+  const selectedSkin = getTableSkin(selectedId);
+  if (!stageSkinId) return selectedSkin;
+  const stageShape = getTableSkin(stageSkinId).shape;
+  return { ...selectedSkin, shape: stageShape };
 }
 
 export function getPuckSkin(id: string): PuckSkin {

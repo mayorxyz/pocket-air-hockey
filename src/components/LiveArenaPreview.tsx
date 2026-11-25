@@ -3,7 +3,11 @@ import { getMalletSkin, getPuckSkin, getTableSkin, isLightSurface } from '../gam
 import { buildTableGeometry, tracePolygonPath } from '../game/tableGeometry';
 import { drawTablePattern } from '../game/tablePatterns';
 import { drawPuckEmblem } from '../game/puckEmblems';
+import { drawPuckDesign } from '../game/puckDesigns';
+import { isExtraPuck } from '../game/puckSkins';
 import { drawMalletPattern } from '../game/malletPatterns';
+import { drawMalletDesign } from '../game/malletDesigns';
+import { isExtraMallet } from '../game/malletSkins';
 
 interface LiveArenaPreviewProps {
   tableSkinId: string;
@@ -219,6 +223,26 @@ export const LiveArenaPreview: React.FC<LiveArenaPreviewProps> = ({
       ctx.arc(mx + 3, my + 6, MR, 0, Math.PI * 2);
       ctx.fill();
 
+      const design = malletSkin.design;
+
+      if (design && isExtraMallet(design)) {
+        drawMalletDesign(
+          ctx,
+          design,
+          mx,
+          my,
+          MR,
+          {
+            body: malletSkin.body ?? fill,
+            ring: malletSkin.ring,
+            accent: malletSkin.accent ?? malletSkin.ring,
+            accent2: malletSkin.accent2 ?? dark,
+          },
+          fill,
+        );
+        return;
+      }
+
       ctx.save();
       if (malletSkin.glow && !isStatic) {
         ctx.shadowColor = malletSkin.glow;
@@ -278,24 +302,40 @@ export const LiveArenaPreview: React.FC<LiveArenaPreviewProps> = ({
       ctx.fill();
       ctx.restore();
 
-      ctx.lineWidth = 1.4;
-      ctx.strokeStyle = lightSurface ? 'rgba(16, 25, 34, 0.34)' : 'rgba(255, 255, 255, 0.26)';
-      ctx.beginPath();
-      ctx.arc(px, py, PR - 0.7, 0, Math.PI * 2);
-      ctx.stroke();
+      const designEmblem =
+        puckSkin.emblem && isExtraPuck(puckSkin.emblem) ? puckSkin.emblem : undefined;
 
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = puckSkin.ring;
-      ctx.beginPath();
-      ctx.arc(px, py, PR - 5, 0, Math.PI * 2);
-      ctx.stroke();
-
-      if (puckSkin.emblem) {
+      if (designEmblem) {
         ctx.save();
         ctx.translate(px, py);
         ctx.rotate(isStatic ? 0 : spinAngle);
-        drawPuckEmblem(ctx, puckSkin.emblem, puckSkin.ring, puckSkin.body);
+        drawPuckDesign(ctx, designEmblem, 0, 0, PR, {
+          body: puckSkin.body,
+          ring: puckSkin.ring,
+          accent: puckSkin.accent ?? puckSkin.ring,
+          accent2: puckSkin.accent2 ?? puckSkin.body,
+        });
         ctx.restore();
+      } else {
+        ctx.lineWidth = 1.4;
+        ctx.strokeStyle = lightSurface ? 'rgba(16, 25, 34, 0.34)' : 'rgba(255, 255, 255, 0.26)';
+        ctx.beginPath();
+        ctx.arc(px, py, PR - 0.7, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = puckSkin.ring;
+        ctx.beginPath();
+        ctx.arc(px, py, PR - 5, 0, Math.PI * 2);
+        ctx.stroke();
+
+        if (puckSkin.emblem) {
+          ctx.save();
+          ctx.translate(px, py);
+          ctx.rotate(isStatic ? 0 : spinAngle);
+          drawPuckEmblem(ctx, puckSkin.emblem, puckSkin.ring, puckSkin.body);
+          ctx.restore();
+        }
       }
 
       ctx.fillStyle = puckSkin.gloss;

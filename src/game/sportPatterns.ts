@@ -20,6 +20,29 @@ export type SportPattern = Extract<
   | 'running_track'
 >;
 
+const SPORT_PATTERN_IDS: readonly SportPattern[] = [
+  'football_pitch',
+  'basketball_court',
+  'table_tennis',
+  'volleyball_court',
+  'tennis_clay',
+  'ice_rink',
+  'futsal_court',
+  'boxing_ring',
+  'fight_cage',
+  'cricket_ground',
+  'baseball_diamond',
+  'handball_court',
+  'pool_table',
+  'badminton_court',
+  'rugby_field',
+  'running_track',
+];
+
+export function isSportPattern(pattern: TablePattern): pattern is SportPattern {
+  return SPORT_PATTERN_IDS.includes(pattern as SportPattern);
+}
+
 /** Draw after the surface fill, before goals, bumpers and puck. Portrait table: goals top and bottom. */
 export function drawSportPattern(
   ctx: CanvasRenderingContext2D,

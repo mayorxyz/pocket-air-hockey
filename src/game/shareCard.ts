@@ -1,7 +1,11 @@
 import { getMalletSkin, getPuckSkin, getTableSkin } from './skins';
 import { buildTableGeometry, tracePolygonPath } from './tableGeometry';
 import { drawPuckEmblem } from './puckEmblems';
+import { drawPuckDesign } from './puckDesigns';
+import { isExtraPuck } from './puckSkins';
 import { drawMalletPattern } from './malletPatterns';
+import { drawMalletDesign } from './malletDesigns';
+import { isExtraMallet } from './malletSkins';
 
 export interface ShareCardPayload {
   title: string;
@@ -115,63 +119,78 @@ export async function shareResultCard(
   ctx.roundRect(gx, th - 18, 150, 28, 10);
   ctx.fill();
 
-  // P2 Mallet
-  ctx.fillStyle = malletSkin.p2;
-  ctx.beginPath();
-  ctx.arc(tw / 2, 128, 34, 0, Math.PI * 2);
-  ctx.fill();
-  if (malletSkin.pattern) {
-    ctx.save();
-    ctx.translate(tw / 2, 128);
-    drawMalletPattern(ctx, malletSkin.pattern, malletSkin.accent ?? malletSkin.ring, 34);
-    ctx.restore();
-  }
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = malletSkin.ring;
-  ctx.beginPath();
-  ctx.arc(tw / 2, 128, 25, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.fillStyle = malletSkin.p2dark;
-  ctx.beginPath();
-  ctx.arc(tw / 2, 128, 15, 0, Math.PI * 2);
-  ctx.fill();
+  const drawMalletAt = (cy: number, fill: string, dark: string) => {
+    const design = malletSkin.design;
+    if (design && isExtraMallet(design)) {
+      drawMalletDesign(
+        ctx,
+        design,
+        tw / 2,
+        cy,
+        34,
+        {
+          body: malletSkin.body ?? fill,
+          ring: malletSkin.ring,
+          accent: malletSkin.accent ?? malletSkin.ring,
+          accent2: malletSkin.accent2 ?? dark,
+        },
+        fill,
+      );
+      return;
+    }
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    ctx.arc(tw / 2, cy, 34, 0, Math.PI * 2);
+    ctx.fill();
+    if (malletSkin.pattern) {
+      ctx.save();
+      ctx.translate(tw / 2, cy);
+      drawMalletPattern(ctx, malletSkin.pattern, malletSkin.accent ?? malletSkin.ring, 34);
+      ctx.restore();
+    }
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = malletSkin.ring;
+    ctx.beginPath();
+    ctx.arc(tw / 2, cy, 25, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = dark;
+    ctx.beginPath();
+    ctx.arc(tw / 2, cy, 15, 0, Math.PI * 2);
+    ctx.fill();
+  };
 
+  // P2 Mallet
+  drawMalletAt(128, malletSkin.p2, malletSkin.p2dark);
   // P1 Mallet
-  ctx.fillStyle = malletSkin.p1;
-  ctx.beginPath();
-  ctx.arc(tw / 2, th - 128, 34, 0, Math.PI * 2);
-  ctx.fill();
-  if (malletSkin.pattern) {
-    ctx.save();
-    ctx.translate(tw / 2, th - 128);
-    drawMalletPattern(ctx, malletSkin.pattern, malletSkin.accent ?? malletSkin.ring, 34);
-    ctx.restore();
-  }
-  ctx.strokeStyle = malletSkin.ring;
-  ctx.beginPath();
-  ctx.arc(tw / 2, th - 128, 25, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.fillStyle = malletSkin.p1dark;
-  ctx.beginPath();
-  ctx.arc(tw / 2, th - 128, 15, 0, Math.PI * 2);
-  ctx.fill();
+  drawMalletAt(th - 128, malletSkin.p1, malletSkin.p1dark);
 
   // Puck
-  ctx.fillStyle = puckSkin.body;
-  ctx.beginPath();
-  ctx.arc(tw / 2, th / 2, 22, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.lineWidth = 2.5;
-  ctx.strokeStyle = puckSkin.ring;
-  ctx.beginPath();
-  ctx.arc(tw / 2, th / 2, 16, 0, Math.PI * 2);
-  ctx.stroke();
+  const designEmblem =
+    puckSkin.emblem && isExtraPuck(puckSkin.emblem) ? puckSkin.emblem : undefined;
+  if (designEmblem) {
+    drawPuckDesign(ctx, designEmblem, tw / 2, th / 2, 22, {
+      body: puckSkin.body,
+      ring: puckSkin.ring,
+      accent: puckSkin.accent ?? puckSkin.ring,
+      accent2: puckSkin.accent2 ?? puckSkin.body,
+    });
+  } else {
+    ctx.fillStyle = puckSkin.body;
+    ctx.beginPath();
+    ctx.arc(tw / 2, th / 2, 22, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = puckSkin.ring;
+    ctx.beginPath();
+    ctx.arc(tw / 2, th / 2, 16, 0, Math.PI * 2);
+    ctx.stroke();
 
-  if (puckSkin.emblem) {
-    ctx.save();
-    ctx.translate(tw / 2, th / 2);
-    drawPuckEmblem(ctx, puckSkin.emblem, puckSkin.ring, puckSkin.body);
-    ctx.restore();
+    if (puckSkin.emblem) {
+      ctx.save();
+      ctx.translate(tw / 2, th / 2);
+      drawPuckEmblem(ctx, puckSkin.emblem, puckSkin.ring, puckSkin.body);
+      ctx.restore();
+    }
   }
 
   ctx.restore();
