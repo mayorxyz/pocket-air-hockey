@@ -25,6 +25,31 @@ const GX1 = (VW - GOAL_W) / 2;
 const PR = 18;
 const MR = 27;
 
+// Sport tables draw their own markings and use surfaceHighlight as a solid accent colour.
+const SPORT_PATTERNS = new Set<string>([
+  'football_pitch', 'basketball_court', 'table_tennis', 'volleyball_court',
+  'tennis_clay', 'ice_rink', 'futsal_court', 'boxing_ring', 'fight_cage',
+  'cricket_ground', 'baseball_diamond', 'handball_court', 'pool_table',
+  'badminton_court', 'rugby_field', 'running_track',
+]);
+const SPRITE_SCALE = 3;
+
+/** Draws once into an offscreen canvas centred on (0, 0), so frames only copy the image. */
+function makeSprite(
+  radius: number,
+  draw: (ctx: CanvasRenderingContext2D) => void
+): { image: HTMLCanvasElement; half: number } {
+  const half = radius + 4;
+  const image = document.createElement('canvas');
+  image.width = image.height = half * 2 * SPRITE_SCALE;
+  const ctx = image.getContext('2d');
+  if (ctx) {
+    ctx.setTransform(SPRITE_SCALE, 0, 0, SPRITE_SCALE, half * SPRITE_SCALE, half * SPRITE_SCALE);
+    draw(ctx);
+  }
+  return { image, half };
+}
+
 const PREVIEW_BUMPERS = [
   { x: 112, y: 0.34, r: 16 },
   { x: 288, y: 0.66, r: 16 },
@@ -85,42 +110,48 @@ export const LiveArenaPreview: React.FC<LiveArenaPreviewProps> = ({
       bgCtx.fillStyle = tableSkin.surface;
       bgCtx.fillRect(0, 0, VW, VH);
 
-      const grad = bgCtx.createLinearGradient(0, 0, 0, VH);
-      grad.addColorStop(0, tableSkin.surfaceHighlight);
-      grad.addColorStop(0.5, 'rgba(255, 255, 255, 0)');
-      grad.addColorStop(1, tableSkin.surfaceShadow);
-      bgCtx.fillStyle = grad;
-      bgCtx.fillRect(0, 0, VW, VH);
+      const isSport = SPORT_PATTERNS.has(tableSkin.pattern);
+
+      if (!isSport) {
+        const grad = bgCtx.createLinearGradient(0, 0, 0, VH);
+        grad.addColorStop(0, tableSkin.surfaceHighlight);
+        grad.addColorStop(0.5, 'rgba(255, 255, 255, 0)');
+        grad.addColorStop(1, tableSkin.surfaceShadow);
+        bgCtx.fillStyle = grad;
+        bgCtx.fillRect(0, 0, VW, VH);
+      }
 
       drawTablePattern(bgCtx, tableSkin, VW, VH);
 
-      // Center line & circle
-      bgCtx.lineWidth = 3;
-      bgCtx.strokeStyle = tableSkin.lines;
-      bgCtx.beginPath();
-      bgCtx.moveTo(0, VH / 2);
-      bgCtx.lineTo(VW, VH / 2);
-      bgCtx.stroke();
+      if (!isSport) {
+        // Center line & circle
+        bgCtx.lineWidth = 3;
+        bgCtx.strokeStyle = tableSkin.lines;
+        bgCtx.beginPath();
+        bgCtx.moveTo(0, VH / 2);
+        bgCtx.lineTo(VW, VH / 2);
+        bgCtx.stroke();
 
-      bgCtx.beginPath();
-      bgCtx.arc(VW / 2, VH / 2, 62, 0, Math.PI * 2);
-      bgCtx.stroke();
+        bgCtx.beginPath();
+        bgCtx.arc(VW / 2, VH / 2, 62, 0, Math.PI * 2);
+        bgCtx.stroke();
 
-      bgCtx.fillStyle = tableSkin.lines;
-      bgCtx.beginPath();
-      bgCtx.arc(VW / 2, VH / 2, 5, 0, Math.PI * 2);
-      bgCtx.fill();
+        bgCtx.fillStyle = tableSkin.lines;
+        bgCtx.beginPath();
+        bgCtx.arc(VW / 2, VH / 2, 5, 0, Math.PI * 2);
+        bgCtx.fill();
 
-      // Goal creases
-      bgCtx.strokeStyle = tableSkin.redZone;
-      bgCtx.beginPath();
-      bgCtx.arc(VW / 2, VH, 108, Math.PI, Math.PI * 2);
-      bgCtx.stroke();
+        // Goal creases
+        bgCtx.strokeStyle = tableSkin.redZone;
+        bgCtx.beginPath();
+        bgCtx.arc(VW / 2, VH, 108, Math.PI, Math.PI * 2);
+        bgCtx.stroke();
 
-      bgCtx.strokeStyle = tableSkin.blueZone;
-      bgCtx.beginPath();
-      bgCtx.arc(VW / 2, 0, 108, 0, Math.PI);
-      bgCtx.stroke();
+        bgCtx.strokeStyle = tableSkin.blueZone;
+        bgCtx.beginPath();
+        bgCtx.arc(VW / 2, 0, 108, 0, Math.PI);
+        bgCtx.stroke();
+      }
 
       // Optional bumpers preview
       if (showBumpers) {
@@ -217,20 +248,15 @@ export const LiveArenaPreview: React.FC<LiveArenaPreviewProps> = ({
     let rafId = 0;
     const startMs = performance.now();
 
-    const drawMallet = (mx: number, my: number, fill: string, dark: string) => {
-      ctx.fillStyle = lightSurface ? malletSkin.shadow : 'rgba(0, 0, 0, 0.42)';
-      ctx.beginPath();
-      ctx.arc(mx + 3, my + 6, MR, 0, Math.PI * 2);
-      ctx.fill();
-
-      const design = malletSkin.design;
-
-      if (design && isExtraMallet(design)) {
+    const extraDesign = malletSkin.design;
+    const makeMalletSprite = (fill: string, dark: string) => {
+      if (!extraDesign || !isExtraMallet(extraDesign)) return null;
+      return makeSprite(MR, (c) =>
         drawMalletDesign(
-          ctx,
-          design,
-          mx,
-          my,
+          c,
+          extraDesign,
+          0,
+          0,
           MR,
           {
             body: malletSkin.body ?? fill,
@@ -238,8 +264,44 @@ export const LiveArenaPreview: React.FC<LiveArenaPreviewProps> = ({
             accent: malletSkin.accent ?? malletSkin.ring,
             accent2: malletSkin.accent2 ?? dark,
           },
-          fill,
-        );
+          fill
+        )
+      );
+    };
+    const p1Sprite = makeMalletSprite(malletSkin.p1, malletSkin.p1dark);
+    const p2Sprite = makeMalletSprite(malletSkin.p2, malletSkin.p2dark);
+
+    const emblem = puckSkin.emblem;
+    const puckSprite =
+      emblem && isExtraPuck(emblem)
+        ? makeSprite(PR, (c) =>
+            drawPuckDesign(c, emblem, 0, 0, PR, {
+              body: puckSkin.body,
+              ring: puckSkin.ring,
+              accent: puckSkin.accent ?? puckSkin.ring,
+              accent2: puckSkin.accent2 ?? puckSkin.body,
+            })
+          )
+        : null;
+
+    const drawSprite = (sprite: { image: HTMLCanvasElement; half: number }, x: number, y: number) => {
+      ctx.drawImage(sprite.image, x - sprite.half, y - sprite.half, sprite.half * 2, sprite.half * 2);
+    };
+
+    const drawMallet = (
+      mx: number,
+      my: number,
+      fill: string,
+      dark: string,
+      sprite: ReturnType<typeof makeMalletSprite>
+    ) => {
+      ctx.fillStyle = lightSurface ? malletSkin.shadow : 'rgba(0, 0, 0, 0.42)';
+      ctx.beginPath();
+      ctx.arc(mx + 3, my + 6, MR, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (sprite) {
+        drawSprite(sprite, mx, my);
         return;
       }
 
@@ -302,40 +364,34 @@ export const LiveArenaPreview: React.FC<LiveArenaPreviewProps> = ({
       ctx.fill();
       ctx.restore();
 
-      const designEmblem =
-        puckSkin.emblem && isExtraPuck(puckSkin.emblem) ? puckSkin.emblem : undefined;
-
-      if (designEmblem) {
+      if (puckSprite) {
+        // The design includes its own rim and shine
         ctx.save();
         ctx.translate(px, py);
         ctx.rotate(isStatic ? 0 : spinAngle);
-        drawPuckDesign(ctx, designEmblem, 0, 0, PR, {
-          body: puckSkin.body,
-          ring: puckSkin.ring,
-          accent: puckSkin.accent ?? puckSkin.ring,
-          accent2: puckSkin.accent2 ?? puckSkin.body,
-        });
+        drawSprite(puckSprite, 0, 0);
         ctx.restore();
-      } else {
-        ctx.lineWidth = 1.4;
-        ctx.strokeStyle = lightSurface ? 'rgba(16, 25, 34, 0.34)' : 'rgba(255, 255, 255, 0.26)';
-        ctx.beginPath();
-        ctx.arc(px, py, PR - 0.7, 0, Math.PI * 2);
-        ctx.stroke();
+        return;
+      }
 
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = puckSkin.ring;
-        ctx.beginPath();
-        ctx.arc(px, py, PR - 5, 0, Math.PI * 2);
-        ctx.stroke();
+      ctx.lineWidth = 1.4;
+      ctx.strokeStyle = lightSurface ? 'rgba(16, 25, 34, 0.34)' : 'rgba(255, 255, 255, 0.26)';
+      ctx.beginPath();
+      ctx.arc(px, py, PR - 0.7, 0, Math.PI * 2);
+      ctx.stroke();
 
-        if (puckSkin.emblem) {
-          ctx.save();
-          ctx.translate(px, py);
-          ctx.rotate(isStatic ? 0 : spinAngle);
-          drawPuckEmblem(ctx, puckSkin.emblem, puckSkin.ring, puckSkin.body);
-          ctx.restore();
-        }
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = puckSkin.ring;
+      ctx.beginPath();
+      ctx.arc(px, py, PR - 5, 0, Math.PI * 2);
+      ctx.stroke();
+
+      if (puckSkin.emblem) {
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(isStatic ? 0 : spinAngle);
+        drawPuckEmblem(ctx, puckSkin.emblem, puckSkin.ring, puckSkin.body);
+        ctx.restore();
       }
 
       ctx.fillStyle = puckSkin.gloss;
@@ -397,8 +453,8 @@ export const LiveArenaPreview: React.FC<LiveArenaPreviewProps> = ({
       }
 
       drawPuck(px, py, t * 2.6);
-      drawMallet(p2Raw.x, p2Raw.y, malletSkin.p2, malletSkin.p2dark);
-      drawMallet(p1Raw.x, p1Raw.y, malletSkin.p1, malletSkin.p1dark);
+      drawMallet(p2Raw.x, p2Raw.y, malletSkin.p2, malletSkin.p2dark, p2Sprite);
+      drawMallet(p1Raw.x, p1Raw.y, malletSkin.p1, malletSkin.p1dark, p1Sprite);
 
       ctx.restore();
     };
@@ -425,7 +481,7 @@ export const LiveArenaPreview: React.FC<LiveArenaPreviewProps> = ({
   return (
     <div
       ref={wrapRef}
-      className="relative w-[min(30dvh,15.714rem)] h-[min(42dvh,22rem)] max-w-full aspect-[5/7] mx-auto flex items-center justify-center"
+      className="relative h-[clamp(11rem,38dvh,22rem)] aspect-[5/7] max-w-full mx-auto flex items-center justify-center"
     >
       <canvas
         ref={canvasRef}

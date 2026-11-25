@@ -246,6 +246,7 @@ export interface CoinBreakdown {
   achievements: number;
   daily: number;
   total: number;
+  resultReward: number;
 }
 
 export interface StageOutcomeSummary {

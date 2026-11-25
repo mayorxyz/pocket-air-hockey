@@ -215,7 +215,19 @@ export {
   type TableSkin,
 } from './skins';
 
-export type PowerupId = 'big_mallet' | 'speed_boost' | 'freeze' | 'double_puck';
+export type PowerupId =
+  | 'goal_shield'
+  | 'wide_goal'
+  | 'big_mallet'
+  | 'freeze'
+  | 'fireball'
+  | 'curve_shot'
+  | 'multi_puck'
+  | 'ghost_puck'
+  | 'magnet'
+  | 'slow_zone'
+  | 'portals'
+  | 'double_points';
 
 export interface PowerupEffectsState {
   malletScaleP: number;
@@ -223,7 +235,25 @@ export interface PowerupEffectsState {
   puckSpeedMul: number;
   freezeP: boolean;
   freezeA: boolean;
-  spawnExtraPuck: () => void;
+  goalShieldP: boolean;
+  goalShieldA: boolean;
+  wideGoalP: boolean;
+  wideGoalA: boolean;
+  fireballP: boolean;
+  fireballA: boolean;
+  curveShotP: boolean;
+  curveShotA: boolean;
+  ghostP: boolean;
+  ghostA: boolean;
+  magnetP: boolean;
+  magnetA: boolean;
+  slowZoneP: boolean;
+  slowZoneA: boolean;
+  portalsP: boolean;
+  portalsA: boolean;
+  doublePointsP: boolean;
+  doublePointsA: boolean;
+  spawnExtraPucks: (count: number) => void;
   clearExtraPucks: () => void;
 }
 
@@ -233,16 +263,49 @@ export interface PowerupDef {
   shortLabel: string;
   duration: number;
   color: string;
+  /** True when the effect is spent on use rather than only on a timer. */
+  charge?: boolean;
   apply: (collector: 'p' | 'a', state: PowerupEffectsState) => void;
   remove: (collector: 'p' | 'a', state: PowerupEffectsState) => void;
 }
 
 export const POWERUPS: Record<PowerupId, PowerupDef> = {
+  goal_shield: {
+    id: 'goal_shield',
+    name: 'Goal Shield',
+    shortLabel: 'SHLD',
+    duration: 8,
+    color: '#22d3ee',
+    charge: true,
+    apply: (collector, state) => {
+      if (collector === 'p') state.goalShieldP = true;
+      else state.goalShieldA = true;
+    },
+    remove: (collector, state) => {
+      if (collector === 'p') state.goalShieldP = false;
+      else state.goalShieldA = false;
+    },
+  },
+  wide_goal: {
+    id: 'wide_goal',
+    name: 'Wide Goal',
+    shortLabel: 'WIDE',
+    duration: 6,
+    color: '#f472b6',
+    apply: (collector, state) => {
+      if (collector === 'p') state.wideGoalP = true;
+      else state.wideGoalA = true;
+    },
+    remove: (collector, state) => {
+      if (collector === 'p') state.wideGoalP = false;
+      else state.wideGoalA = false;
+    },
+  },
   big_mallet: {
     id: 'big_mallet',
     name: 'Big Mallet',
     shortLabel: 'BIG',
-    duration: 6,
+    duration: 8,
     color: '#10b981',
     apply: (collector, state) => {
       if (collector === 'p') state.malletScaleP = 1.4;
@@ -253,24 +316,11 @@ export const POWERUPS: Record<PowerupId, PowerupDef> = {
       else state.malletScaleA = 1;
     },
   },
-  speed_boost: {
-    id: 'speed_boost',
-    name: 'Speed Boost',
-    shortLabel: 'FAST',
-    duration: 4,
-    color: '#f59e0b',
-    apply: (_collector, state) => {
-      state.puckSpeedMul = 1.3;
-    },
-    remove: (_collector, state) => {
-      state.puckSpeedMul = 1;
-    },
-  },
   freeze: {
     id: 'freeze',
     name: 'Freeze',
     shortLabel: 'ICE',
-    duration: 2,
+    duration: 1.5,
     color: '#38bdf8',
     apply: (collector, state) => {
       if (collector === 'p') state.freezeA = true;
@@ -281,17 +331,125 @@ export const POWERUPS: Record<PowerupId, PowerupDef> = {
       else state.freezeP = false;
     },
   },
-  double_puck: {
-    id: 'double_puck',
-    name: 'Double Puck',
-    shortLabel: '2X',
-    duration: 8,
+  fireball: {
+    id: 'fireball',
+    name: 'Fireball',
+    shortLabel: 'FIRE',
+    duration: 12,
+    color: '#ef4444',
+    charge: true,
+    apply: (collector, state) => {
+      if (collector === 'p') state.fireballP = true;
+      else state.fireballA = true;
+    },
+    remove: (collector, state) => {
+      if (collector === 'p') state.fireballP = false;
+      else state.fireballA = false;
+    },
+  },
+  curve_shot: {
+    id: 'curve_shot',
+    name: 'Curve Shot',
+    shortLabel: 'CURVE',
+    duration: 12,
+    color: '#f59e0b',
+    charge: true,
+    apply: (collector, state) => {
+      if (collector === 'p') state.curveShotP = true;
+      else state.curveShotA = true;
+    },
+    remove: (collector, state) => {
+      if (collector === 'p') state.curveShotP = false;
+      else state.curveShotA = false;
+    },
+  },
+  multi_puck: {
+    id: 'multi_puck',
+    name: 'Multi-Puck',
+    shortLabel: 'MULTI',
+    duration: 30,
     color: '#a855f7',
     apply: (_collector, state) => {
-      state.spawnExtraPuck();
+      state.spawnExtraPucks(2);
     },
     remove: (_collector, state) => {
       state.clearExtraPucks();
+    },
+  },
+  ghost_puck: {
+    id: 'ghost_puck',
+    name: 'Ghost Puck',
+    shortLabel: 'GHOST',
+    duration: 5,
+    color: '#a78bfa',
+    apply: (collector, state) => {
+      if (collector === 'p') state.ghostP = true;
+      else state.ghostA = true;
+    },
+    remove: (collector, state) => {
+      if (collector === 'p') state.ghostP = false;
+      else state.ghostA = false;
+    },
+  },
+  magnet: {
+    id: 'magnet',
+    name: 'Magnet',
+    shortLabel: 'MAG',
+    duration: 4,
+    color: '#fbbf24',
+    charge: true,
+    apply: (collector, state) => {
+      if (collector === 'p') state.magnetP = true;
+      else state.magnetA = true;
+    },
+    remove: (collector, state) => {
+      if (collector === 'p') state.magnetP = false;
+      else state.magnetA = false;
+    },
+  },
+  slow_zone: {
+    id: 'slow_zone',
+    name: 'Slow Zone',
+    shortLabel: 'SLOW',
+    duration: 6,
+    color: '#60a5fa',
+    apply: (collector, state) => {
+      if (collector === 'p') state.slowZoneP = true;
+      else state.slowZoneA = true;
+    },
+    remove: (collector, state) => {
+      if (collector === 'p') state.slowZoneP = false;
+      else state.slowZoneA = false;
+    },
+  },
+  portals: {
+    id: 'portals',
+    name: 'Portals',
+    shortLabel: 'PORT',
+    duration: 8,
+    color: '#34d399',
+    apply: (collector, state) => {
+      if (collector === 'p') state.portalsP = true;
+      else state.portalsA = true;
+    },
+    remove: (collector, state) => {
+      if (collector === 'p') state.portalsP = false;
+      else state.portalsA = false;
+    },
+  },
+  double_points: {
+    id: 'double_points',
+    name: 'Double Points',
+    shortLabel: '2X',
+    duration: 30,
+    color: '#facc15',
+    apply: (collector, state) => {
+      if (collector === 'p') state.doublePointsP = true;
+      else state.doublePointsA = true;
+    },
+    remove: (collector, state) => {
+      if (collector === 'p') state.doublePointsP = false;
+      else state.doublePointsA = false;
     },
   },
 };

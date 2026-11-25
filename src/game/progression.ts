@@ -21,6 +21,27 @@ import {
   StageStarCount,
   WorldId,
 } from './types';
+const LOSS_REWARD = {
+  closeMargin: 2,
+  closeShare: 1 / 3,
+  heavyShare: 1 / 6,
+  minGoals: 1,
+  minSeconds: 60,
+};
+
+function getLossCoins(winCoins: number, result: MatchResult) {
+  const eligible =
+    result.playerScore >= LOSS_REWARD.minGoals || result.duration >= LOSS_REWARD.minSeconds;
+  if (!eligible) return { base: 0, goals: 0 };
+
+  const margin = result.opponentScore - result.playerScore;
+  const share =
+    margin <= LOSS_REWARD.closeMargin ? LOSS_REWARD.closeShare : LOSS_REWARD.heavyShare;
+  const goalCoins = result.playerScore * 2;
+  const total = Math.round((winCoins + goalCoins) * share);
+  const goals = Math.round(goalCoins * share);
+  return { base: total - goals, goals };
+}
 
 export function getTotalStageStars(save: SaveDataV3): number {
   let total = 0;
@@ -388,11 +409,16 @@ export function finalizeMatch(currentSave: SaveDataV3, result: MatchResult): {
           }
           nextLegend100Badge = true;
         }
-      } else {
-        coins.base = 5;
       }
       coins.goals = result.playerScore * 2;
       coins.shutout = result.won && result.opponentScore === 0 ? 10 : 0;
+      if (!result.won) {
+        const winCoins =
+          previousStars === 0
+            ? stage.coinReward
+            : Math.max(5, Math.round(stage.coinReward * 0.25));
+        Object.assign(coins, getLossCoins(winCoins, result));
+      }
 
       // Evaluate whether next stage is playable considering world star & boss gates
       const tempSave: SaveDataV3 = { ...currentSave, stages: nextStages };
@@ -422,9 +448,10 @@ export function finalizeMatch(currentSave: SaveDataV3, result: MatchResult): {
         ...(legend100Unlocked ? { legend100Unlocked: true } : {}),
       };
     } else {
-      coins.base = result.won ? 20 : 5;
+      coins.base = 20;
       coins.goals = result.playerScore * 2;
       coins.shutout = result.won && result.opponentScore === 0 ? 10 : 0;
+      if (!result.won) Object.assign(coins, getLossCoins(20, result));
     }
   }
 

@@ -26,6 +26,7 @@ import {
   isAngleInArc,
   TableGeometry,
   tracePolygonPath,
+  WallSegment,
 } from './tableGeometry';
 import { drawTablePattern } from './tablePatterns';
 import {
@@ -57,7 +58,8 @@ const GX1 = (W - GOAL_W) / 2;
 const GX2 = GX1 + GOAL_W;
 const BASE_MAXV = 1400;
 const POWERUP_RADIUS = 18;
-const MAX_PUCKS = 3;
+const MAX_PUCKS = 5;
+const WIDE_GOAL_MULT = 1.6;
 const MAX_PARTICLES = 24;
 const RING_BUFFER_SIZE = 240;
 const OUTER_BG = '#101922';
@@ -242,6 +244,10 @@ export class AirHockeyEngine {
   private activePowerups: ActivePowerup[] = [];
   private nextPowerupSpawnT = 9;
   private powerupEffects: PowerupEffectsState;
+  private magnetHoldT = 0;
+  private magnetPuckIdx = -1;
+  private magnetOwner: Scorer = 'p';
+  private portalCd = [0, 0, 0, 0, 0];
 
   // Match telemetry
   private matchElapsed = 0;
@@ -322,7 +328,27 @@ export class AirHockeyEngine {
       puckSpeedMul: 1,
       freezeP: false,
       freezeA: false,
-      spawnExtraPuck: () => this.spawnExtraPuck(),
+      goalShieldP: false,
+      goalShieldA: false,
+      wideGoalP: false,
+      wideGoalA: false,
+      fireballP: false,
+      fireballA: false,
+      curveShotP: false,
+      curveShotA: false,
+      ghostP: false,
+      ghostA: false,
+      magnetP: false,
+      magnetA: false,
+      slowZoneP: false,
+      slowZoneA: false,
+      portalsP: false,
+      portalsA: false,
+      doublePointsP: false,
+      doublePointsA: false,
+      spawnExtraPucks: (count: number) => {
+        for (let i = 0; i < count; i++) this.spawnExtraPuck();
+      },
       clearExtraPucks: () => this.clearExtraPucks(),
     };
 
@@ -963,6 +989,27 @@ export class AirHockeyEngine {
     this.powerupEffects.puckSpeedMul = 1;
     this.powerupEffects.freezeP = false;
     this.powerupEffects.freezeA = false;
+    this.powerupEffects.goalShieldP = false;
+    this.powerupEffects.goalShieldA = false;
+    this.powerupEffects.wideGoalP = false;
+    this.powerupEffects.wideGoalA = false;
+    this.powerupEffects.fireballP = false;
+    this.powerupEffects.fireballA = false;
+    this.powerupEffects.curveShotP = false;
+    this.powerupEffects.curveShotA = false;
+    this.powerupEffects.ghostP = false;
+    this.powerupEffects.ghostA = false;
+    this.powerupEffects.magnetP = false;
+    this.powerupEffects.magnetA = false;
+    this.powerupEffects.slowZoneP = false;
+    this.powerupEffects.slowZoneA = false;
+    this.powerupEffects.portalsP = false;
+    this.powerupEffects.portalsA = false;
+    this.powerupEffects.doublePointsP = false;
+    this.powerupEffects.doublePointsA = false;
+    this.magnetHoldT = 0;
+    this.magnetPuckIdx = -1;
+    this.portalCd.fill(0);
     this.clearExtraPucks(forceAllPucks);
   }
 
@@ -1012,13 +1059,10 @@ export class AirHockeyEngine {
     }
 
     def.apply(collector, this.powerupEffects);
-    if (def.id === 'speed_boost') {
-      for (const p of this.pucks) {
-        if (p.active) {
-          p.vx *= 1.25;
-          p.vy *= 1.25;
-        }
-      }
+    if (def.id === 'magnet') {
+      this.magnetOwner = collector;
+      this.magnetPuckIdx = -1;
+      this.magnetHoldT = 0;
     }
 
     this.activePowerups.push({
@@ -1032,6 +1076,17 @@ export class AirHockeyEngine {
     this.addRipple(this.tablePowerup.x, this.tablePowerup.y, def.color, 54);
     this.spawnParticles(this.tablePowerup.x, this.tablePowerup.y, def.color, 8);
     this.tablePowerup = null;
+  }
+
+  private consumePowerup(id: PowerupId, collector: Scorer): void {
+    for (let i = this.activePowerups.length - 1; i >= 0; i--) {
+      const eff = this.activePowerups[i];
+      if (eff.id === id && eff.collector === collector) {
+        POWERUPS[id].remove(collector, this.powerupEffects);
+        this.activePowerups.splice(i, 1);
+        return;
+      }
+    }
   }
 
   private updatePowerups(dt: number): void {
@@ -1128,9 +1183,11 @@ export class AirHockeyEngine {
       return;
     }
 
-    this.score[who] += 1;
+    const doubled =
+      (who === 'p' && this.powerupEffects.doublePointsP) ||
+      (who === 'a' && this.powerupEffects.doublePointsA);
+    this.score[who] += doubled ? 2 : 1;
     const deficit = this.score.a - this.score.p;
-    if (deficit > this.maxDeficit) this.maxDeficit = deficit;
 
     this.lastScorer = who;
     this.clearAllPowerups(true);
@@ -1479,6 +1536,19 @@ export class AirHockeyEngine {
 
       puck.lastHitter = isMe ? 'p' : 'a';
 
+      // One-shot offensive power-ups are spent on this hit.
+      const fireReady = isMe ? this.powerupEffects.fireballP : this.powerupEffects.fireballA;
+      if (fireReady) {
+        puck.vx *= 1.55;
+        puck.vy *= 1.55;
+        this.consumePowerup('fireball', puck.lastHitter);
+      }
+      const curveReady = isMe ? this.powerupEffects.curveShotP : this.powerupEffects.curveShotA;
+      if (curveReady) {
+        puck.spin = (puck.spin >= 0 ? 1 : -1) * 0.95;
+        this.consumePowerup('curve_shot', puck.lastHitter);
+      }
+
       if (!isDemo) {
         const puckSpeed = Math.hypot(puck.vx, puck.vy);
         const maxV = this.getMaxPuckVelocity(false);
@@ -1551,6 +1621,101 @@ export class AirHockeyEngine {
     }
   }
 
+  /** Player-collected Wide Goal opens the top mouth; opponent-collected opens the bottom. */
+  private goalMouth(top: boolean): { x1: number; x2: number } {
+    const wide = top ? this.powerupEffects.wideGoalP : this.powerupEffects.wideGoalA;
+    const width = wide ? Math.min(GOAL_W * WIDE_GOAL_MULT, W - 48) : GOAL_W;
+    const x1 = (W - width) * 0.5;
+    return { x1, x2: x1 + width };
+  }
+
+  private segmentOpensForWideGoal(s: WallSegment, proj: number): boolean {
+    const onTop = Math.abs(s.ay - WALL) < 3 && Math.abs(s.by - WALL) < 3;
+    const onBot = Math.abs(s.ay - (this.H - WALL)) < 3 && Math.abs(s.by - (this.H - WALL)) < 3;
+    if (!onTop && !onBot) return false;
+    if (onTop && !this.powerupEffects.wideGoalP) return false;
+    if (onBot && !this.powerupEffects.wideGoalA) return false;
+    const ux = (s.bx - s.ax) / s.len;
+    const cx = s.ax + ux * proj;
+    const mouth = this.goalMouth(onTop);
+    return cx > mouth.x1 && cx < mouth.x2;
+  }
+
+  private rejectShieldedGoal(puck: PuckState, defender: Scorer): void {
+    puck.y = defender === 'a' ? WALL + PR + 4 : this.H - WALL - PR - 4;
+    puck.vy = defender === 'a' ? Math.abs(puck.vy) + 220 : -(Math.abs(puck.vy) + 220);
+    puck.vx *= 0.6;
+    this.consumePowerup('goal_shield', defender);
+    soundEngine.play('wall', 400, { maxV: this.getMaxPuckVelocity(false) });
+  }
+
+  private updateMagnet(dt: number, isDemo: boolean): void {
+    const owners: Scorer[] = [];
+    if (this.powerupEffects.magnetP) owners.push('p');
+    if (this.powerupEffects.magnetA) owners.push('a');
+    if (owners.length === 0 || isDemo) {
+      this.magnetPuckIdx = -1;
+      this.magnetHoldT = 0;
+      return;
+    }
+    const held = this.pucks[this.magnetPuckIdx];
+    if (!held || !held.active || !owners.includes(this.magnetOwner)) {
+      let best = -1;
+      let bestD = 160;
+      const owner = owners[0];
+      const mallet = owner === 'p' ? this.me : this.ai;
+      for (let i = 0; i < this.pucks.length; i++) {
+        const puck = this.pucks[i];
+        if (!puck.active) continue;
+        const d = Math.hypot(puck.x - mallet.x, puck.y - mallet.y);
+        if (d < bestD) {
+          bestD = d;
+          best = i;
+        }
+      }
+      this.magnetOwner = owner;
+      this.magnetPuckIdx = best;
+      this.magnetHoldT = 0;
+      if (best < 0) return;
+    }
+    const puck = this.pucks[this.magnetPuckIdx];
+    const mallet = this.magnetOwner === 'p' ? this.me : this.ai;
+    const facing = this.magnetOwner === 'p' ? -1 : 1;
+    const mr = this.getMalletRadius(this.magnetOwner === 'p');
+    puck.x = mallet.x;
+    puck.y = mallet.y + facing * (mr + PR + 2);
+    puck.vx = mallet.vx;
+    puck.vy = mallet.vy;
+    puck.lastHitter = this.magnetOwner;
+    this.magnetHoldT += dt;
+    if (this.magnetHoldT > 0.4) {
+      puck.vx = mallet.vx * 0.25;
+      puck.vy = facing * 980;
+      this.consumePowerup('magnet', this.magnetOwner);
+      this.magnetPuckIdx = -1;
+      this.magnetHoldT = 0;
+    }
+  }
+
+  private applyPortals(puck: PuckState, index: number): void {
+    if (this.portalCd[index] > 0) return;
+    if (!this.powerupEffects.portalsP && !this.powerupEffects.portalsA) return;
+    const portals = [
+      { x: W * 0.28, y: this.H * 0.36 },
+      { x: W * 0.72, y: this.H * 0.64 },
+    ];
+    for (let i = 0; i < portals.length; i++) {
+      const from = portals[i];
+      if (Math.hypot(puck.x - from.x, puck.y - from.y) > 26) continue;
+      const to = portals[1 - i];
+      const speed = Math.hypot(puck.vx, puck.vy) || 1;
+      puck.x = to.x + (puck.vx / speed) * 40;
+      puck.y = to.y + (puck.vy / speed) * 40;
+      this.portalCd[index] = 0.4;
+      return;
+    }
+  }
+
   private resolvePuckBoundsAndObstacles(
     p: PuckState,
     bumpers: ObstacleBumper[],
@@ -1595,6 +1760,7 @@ export class AirHockeyEngine {
       const uy = (s.by - s.ay) / s.len;
       const proj = (p.x - s.ax) * ux + (p.y - s.ay) * uy;
       if (proj >= 0 && proj <= s.len) {
+        if (this.segmentOpensForWideGoal(s, proj)) continue;
         const signedD = (p.x - s.ax) * s.nx + (p.y - s.ay) * s.ny;
         if (signedD < PR && signedD > -PR * 2.5) {
           const push = PR - signedD;
@@ -1618,11 +1784,13 @@ export class AirHockeyEngine {
       this.collidePuckWithCircle(p, v.x, v.y, 0, 0.94, isDemo);
     }
 
-    // 4. Goal posts
-    this.collidePuckWithCircle(p, GX1, WALL, 0, 0.9, isDemo);
-    this.collidePuckWithCircle(p, GX2, WALL, 0, 0.9, isDemo);
-    this.collidePuckWithCircle(p, GX1, this.H - WALL, 0, 0.9, isDemo);
-    this.collidePuckWithCircle(p, GX2, this.H - WALL, 0, 0.9, isDemo);
+    // 4. Goal posts (slide outward while Wide Goal is active on that end)
+    const topMouth = this.goalMouth(true);
+    const botMouth = this.goalMouth(false);
+    this.collidePuckWithCircle(p, topMouth.x1, WALL, 0, 0.9, isDemo);
+    this.collidePuckWithCircle(p, topMouth.x2, WALL, 0, 0.9, isDemo);
+    this.collidePuckWithCircle(p, botMouth.x1, this.H - WALL, 0, 0.9, isDemo);
+    this.collidePuckWithCircle(p, botMouth.x2, this.H - WALL, 0, 0.9, isDemo);
 
     // 5. Static obstacle bumpers
     for (let bIdx = 0; bIdx < bumpers.length; bIdx++) {
@@ -1705,16 +1873,30 @@ export class AirHockeyEngine {
       p.y += p.vy * dt;
       p.vx *= f;
       p.vy *= f;
+      if (!isDemo) {
+        const inTop = p.y < this.H * 0.5;
+        if ((inTop && this.powerupEffects.slowZoneP) || (!inTop && this.powerupEffects.slowZoneA)) {
+          const drag = Math.pow(0.28, dt);
+          p.vx *= drag;
+          p.vy *= drag;
+        }
+        if (this.portalCd[i] > 0) this.portalCd[i] = Math.max(0, this.portalCd[i] - dt);
+        if (i !== this.magnetPuckIdx) this.applyPortals(p, i);
+      }
     }
+
+    this.updateMagnet(dt, isDemo);
 
     // Step (b): Resolve Mallet-vs-Puck with wall-pinch tangential projection & anti-stall
     for (let i = 0; i < this.pucks.length; i++) {
       const p = this.pucks[i];
-      if (!p.active) continue;
+      if (!p.active || i === this.magnetPuckIdx) continue;
       this.detectPuckWallContact(p);
-      this.collideMalletWithPuck(this.me, true, p, p1Skin.p1, isDemo);
+      if (!this.powerupEffects.ghostA) {
+        this.collideMalletWithPuck(this.me, true, p, p1Skin.p1, isDemo);
+      }
       if (this.tutorialStep === 3 && !p.active) return;
-      if (hasOpponent) {
+      if (hasOpponent && !this.powerupEffects.ghostP) {
         this.detectPuckWallContact(p);
         this.collideMalletWithPuck(this.ai, false, p, p2Skin.p2, isDemo);
       }
@@ -1761,10 +1943,12 @@ export class AirHockeyEngine {
       const p = this.pucks[i];
       if (!p.active) continue;
       if (p.y < 0) {
-        this.goal('p');
+        if (!isDemo && this.powerupEffects.goalShieldA) this.rejectShieldedGoal(p, 'a');
+        else this.goal('p');
         break;
       } else if (p.y > this.H) {
-        this.goal('a');
+        if (!isDemo && this.powerupEffects.goalShieldP) this.rejectShieldedGoal(p, 'p');
+        else this.goal('a');
         break;
       }
     }
@@ -2339,6 +2523,43 @@ export class AirHockeyEngine {
     this.circle(p.x - 6, p.y - 7, 3.5);
   }
 
+  private drawPowerupField(ctx: CanvasRenderingContext2D): void {
+    const fx = this.powerupEffects;
+    if (fx.slowZoneP) {
+      ctx.fillStyle = 'rgba(96, 165, 250, 0.16)';
+      ctx.fillRect(0, 0, W, this.H * 0.5);
+    }
+    if (fx.slowZoneA) {
+      ctx.fillStyle = 'rgba(96, 165, 250, 0.16)';
+      ctx.fillRect(0, this.H * 0.5, W, this.H * 0.5);
+    }
+    if (fx.goalShieldA || fx.wideGoalP) {
+      const mouth = this.goalMouth(true);
+      ctx.strokeStyle = fx.goalShieldA ? '#22d3ee' : '#f472b6';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(mouth.x1, 0, mouth.x2 - mouth.x1, WALL + 6);
+    }
+    if (fx.goalShieldP || fx.wideGoalA) {
+      const mouth = this.goalMouth(false);
+      ctx.strokeStyle = fx.goalShieldP ? '#22d3ee' : '#f472b6';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(mouth.x1, this.H - WALL - 6, mouth.x2 - mouth.x1, WALL + 6);
+    }
+    if (fx.portalsP || fx.portalsA) {
+      const portals = [
+        { x: W * 0.28, y: this.H * 0.36 },
+        { x: W * 0.72, y: this.H * 0.64 },
+      ];
+      ctx.strokeStyle = '#34d399';
+      ctx.lineWidth = 3;
+      for (const portal of portals) {
+        ctx.beginPath();
+        ctx.arc(portal.x, portal.y, 22, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+  }
+
   private drawPowerupBubble(tp: TablePowerup): void {
     const ctx = this.ctx;
     const def = POWERUPS[tp.id];
@@ -2443,6 +2664,7 @@ export class AirHockeyEngine {
 
     ctx.clip(this.clipPath);
     ctx.drawImage(this.bg, 0, 0, W, this.H);
+    this.drawPowerupField(ctx);
 
     // On-ice score numerals (hidden on Home demo, Practice mode & Tutorial)
     if (
@@ -2559,7 +2781,7 @@ export class AirHockeyEngine {
             : 'Blue scores'
           : this.lastScorer === 'p'
             ? 'You scored'
-            : 'They scored';
+            : 'Bot scored';
       ctx.fillText(who, W / 2, this.H / 2 + 14);
     }
 

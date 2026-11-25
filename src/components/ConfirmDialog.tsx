@@ -10,6 +10,9 @@ interface ConfirmDialogProps {
   onCancel: () => void;
 }
 
+const BUTTON =
+  'w-full min-w-0 min-h-11 px-3 py-2 rounded-xl text-sm leading-tight cursor-pointer transition-transform duration-150 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
+
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   title,
   message,
@@ -25,34 +28,37 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
       aria-describedby="confirm-dialog-desc"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d151e]/88 backdrop-blur-sm safe-shell safe-scroll"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d151e]/90 backdrop-blur-sm pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]"
     >
-      <div className="w-full max-w-[min(100%,21rem)] max-h-[90dvh] overflow-y-auto overscroll-contain my-auto rounded-3xl bg-[#14202c] border border-white/16 p-6 text-center shadow-2xl">
-        <h2
-          id="confirm-dialog-title"
-          className="font-display text-[clamp(1.3rem,4.5vw,1.6rem)] font-extrabold text-white [text-wrap:balance]"
-        >
-          {title}
-        </h2>
-        <p id="confirm-dialog-desc" className="mt-2 text-sm sm:text-base text-[#b8c7d3] leading-snug">
-          {message}
-        </p>
-        <div className="mt-6 space-y-2.5">
+      <div className="w-full max-w-sm max-h-full flex flex-col rounded-3xl bg-[#14202c] border border-white/15 text-center shadow-2xl">
+        <div className="min-h-0 overflow-y-auto overscroll-contain p-4 pb-1">
+          <h2
+            id="confirm-dialog-title"
+            className="font-display m-0 text-xl font-extrabold text-white leading-tight [text-wrap:balance]"
+          >
+            {title}
+          </h2>
+          <p id="confirm-dialog-desc" className="m-0 mt-2 text-sm text-[#b8c7d3] leading-relaxed">
+            {message}
+          </p>
+        </div>
+        <div className="shrink-0 grid grid-cols-2 gap-2 p-4 pt-3">
           <button
             type="button"
-            onClick={onConfirm}
-            className={`w-full min-h-12 rounded-2xl border border-white/18 font-display font-extrabold text-base text-white active:scale-[0.98] transition-transform cursor-pointer ${
-              destructive ? 'bg-[#f0452d] hover:bg-[#e13c24]' : 'bg-[#2459d6] hover:bg-[#1f4ec0]'
-            }`}
+            autoFocus
+            onClick={onCancel}
+            className={`${BUTTON} bg-white/12 hover:bg-white/18 font-bold text-white`}
           >
-            {confirmLabel}
+            {cancelLabel}
           </button>
           <button
             type="button"
-            onClick={onCancel}
-            className="w-full min-h-12 rounded-2xl bg-white/12 border border-white/14 hover:bg-white/18 font-bold text-base text-white active:scale-[0.98] transition-transform cursor-pointer"
+            onClick={onConfirm}
+            className={`${BUTTON} font-display font-extrabold text-white ${
+              destructive ? 'bg-[#c9301a] hover:bg-[#b02a16]' : 'bg-[#2459d6] hover:bg-[#1e4ec0]'
+            }`}
           >
-            {cancelLabel}
+            {confirmLabel}
           </button>
         </div>
       </div>
