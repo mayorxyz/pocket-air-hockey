@@ -22,6 +22,20 @@ export type TablePattern =
   | 'royal_crest'
   | 'circuit_traces'
   | 'chevron_lanes'
+  | 'prism_facets'
+  | 'pulse_waves'
+  | 'pcb_board'
+  | 'reactor_core'
+  | 'glacier_crystal'
+  | 'astral_mandala'
+  | 'orrery'
+  | 'obsidian_shatter'
+  | 'cobalt_arena'
+  | 'crimson_colosseum'
+  | 'slate_tiles'
+  | 'emerald_argyle'
+  | 'apex_throne'
+  | 'volcanic_crust'
   | 'football_pitch'
   | 'basketball_court'
   | 'table_tennis'
@@ -681,7 +695,7 @@ export const SKINS: SkinsRegistry = {
       id: 'prism_hex',
       name: 'Prism Hex',
       shape: 'chamfer_shield',
-      pattern: 'hex_mesh',
+      pattern: 'prism_facets',
       surface: '#0f172a',
       surfaceHighlight: 'rgba(167, 139, 250, 0.09)',
       surfaceShadow: 'rgba(2, 6, 23, 0.4)',
@@ -705,7 +719,7 @@ export const SKINS: SkinsRegistry = {
       id: 'capsule_pulse',
       name: 'Capsule Pulse',
       shape: 'capsule_pill',
-      pattern: 'chevron_lanes',
+      pattern: 'pulse_waves',
       surface: '#111827',
       surfaceHighlight: 'rgba(52, 211, 153, 0.08)',
       surfaceShadow: 'rgba(0, 0, 0, 0.35)',
@@ -824,7 +838,7 @@ export const SKINS: SkinsRegistry = {
       id: 'crimson_arena',
       name: 'Crimson Arena',
       shape: 'hourglass_waist',
-      pattern: 'hex_mesh',
+      pattern: 'crimson_colosseum',
       surface: '#1d1218',
       surfaceHighlight: 'rgba(240, 69, 45, 0.08)',
       surfaceShadow: 'rgba(0, 0, 0, 0.25)',
@@ -848,7 +862,7 @@ export const SKINS: SkinsRegistry = {
       id: 'arctic_slate',
       name: 'Arctic Slate',
       shape: 'octagon_arena',
-      pattern: 'air_dots',
+      pattern: 'slate_tiles',
       surface: '#d8e3ea',
       surfaceHighlight: 'rgba(255, 255, 255, 0.35)',
       surfaceShadow: 'rgba(100, 116, 139, 0.18)',
@@ -872,7 +886,7 @@ export const SKINS: SkinsRegistry = {
       id: 'emerald_club',
       name: 'Emerald Club',
       shape: 'stadium_oval',
-      pattern: 'royal_crest',
+      pattern: 'emerald_argyle',
       surface: '#0f3d2e',
       surfaceHighlight: 'rgba(52, 211, 153, 0.08)',
       surfaceShadow: 'rgba(6, 26, 20, 0.3)',
@@ -896,7 +910,7 @@ export const SKINS: SkinsRegistry = {
       id: 'cyber_reactor',
       name: 'Cyber Reactor',
       shape: 'hourglass_waist',
-      pattern: 'neon_grid',
+      pattern: 'reactor_core',
       surface: '#0d141c',
       surfaceHighlight: 'rgba(6, 182, 212, 0.07)',
       surfaceShadow: 'rgba(245, 158, 11, 0.07)',
@@ -920,7 +934,7 @@ export const SKINS: SkinsRegistry = {
       id: 'cyber_circuit',
       name: 'Cyber Circuit',
       shape: 'capsule_pill',
-      pattern: 'circuit_traces',
+      pattern: 'pcb_board',
       surface: '#0c131d',
       surfaceHighlight: 'rgba(6, 182, 212, 0.08)',
       surfaceShadow: 'rgba(245, 158, 11, 0.08)',
@@ -944,7 +958,7 @@ export const SKINS: SkinsRegistry = {
       id: 'glacier_mint',
       name: 'Glacier Mint',
       shape: 'chamfer_shield',
-      pattern: 'chevron_lanes',
+      pattern: 'glacier_crystal',
       surface: '#e2f5f0',
       surfaceHighlight: 'rgba(255, 255, 255, 0.35)',
       surfaceShadow: 'rgba(15, 118, 110, 0.14)',
@@ -968,7 +982,7 @@ export const SKINS: SkinsRegistry = {
       id: 'volcanic_ember',
       name: 'Volcanic Ember',
       shape: 'octagon_arena',
-      pattern: 'hex_mesh',
+      pattern: 'volcanic_crust', // <-- Changed
       surface: '#181211',
       surfaceHighlight: 'rgba(234, 88, 12, 0.08)',
       surfaceShadow: 'rgba(0, 0, 0, 0.3)',
@@ -992,7 +1006,7 @@ export const SKINS: SkinsRegistry = {
       id: 'cobalt_stadium',
       name: 'Cobalt Stadium',
       shape: 'stadium_oval',
-      pattern: 'air_dots',
+      pattern: 'cobalt_arena',
       surface: '#0f1d3a',
       surfaceHighlight: 'rgba(56, 189, 248, 0.08)',
       surfaceShadow: 'rgba(4, 10, 24, 0.32)',
@@ -1016,7 +1030,7 @@ export const SKINS: SkinsRegistry = {
       id: 'mythic_celestial',
       name: 'Mythic Celestial',
       shape: 'hex_diamond',
-      pattern: 'royal_crest',
+      pattern: 'orrery',
       surface: '#0b0d1f',
       surfaceHighlight: 'rgba(168, 85, 247, 0.1)',
       surfaceShadow: 'rgba(250, 204, 21, 0.06)',
@@ -1036,27 +1050,27 @@ export const SKINS: SkinsRegistry = {
       locked: true,
       unlock: { type: 'stage', stageId: 60, label: 'Beat Stage 60' },
     },
-    obsidian_grid: {
+obsidian_grid: {
       id: 'obsidian_grid',
       name: 'Obsidian Matrix',
       shape: 'hourglass_waist',
-      pattern: 'neon_grid',
-      surface: '#0a0b14',
-      surfaceHighlight: 'rgba(168, 85, 247, 0.08)',
-      surfaceShadow: 'rgba(56, 189, 248, 0.08)',
-      dots: '#231f42',
-      rail: '#241c44',
-      lines: 'rgba(168, 85, 247, 0.62)',
-      redZone: 'rgba(232, 121, 249, 0.95)',
-      blueZone: 'rgba(56, 189, 248, 0.95)',
-      goalSlot: '#04050a',
-      bumper: '#241c44',
-      bumperRing: '#c084fc',
-      p1Score: 'rgba(232, 121, 249, 0.26)',
-      p2Score: 'rgba(56, 189, 248, 0.26)',
-      p1Banner: '#e879f9',
-      p2Banner: '#38bdf8',
-      countdown: 'rgba(243, 232, 255, 0.68)',
+      pattern: 'obsidian_shatter',
+      surface: '#040806',
+      surfaceHighlight: 'rgba(74, 222, 128, 0.08)',
+      surfaceShadow: 'rgba(16, 185, 129, 0.10)',
+      dots: '#143322',
+      rail: '#0c1f14',
+      lines: 'rgba(74, 222, 128, 0.65)',
+      redZone: 'rgba(74, 222, 128, 0.95)',
+      blueZone: 'rgba(45, 212, 191, 0.95)',
+      goalSlot: '#020403',
+      bumper: '#0a1c12',
+      bumperRing: '#4ade80',
+      p1Score: 'rgba(74, 222, 128, 0.26)',
+      p2Score: 'rgba(45, 212, 191, 0.26)',
+      p1Banner: '#4ade80',
+      p2Banner: '#2dd4bf',
+      countdown: 'rgba(220, 252, 231, 0.72)',
       locked: true,
       unlock: { type: 'stage', stageId: 80, label: 'Beat Stage 80' },
     },
@@ -1064,7 +1078,7 @@ export const SKINS: SkinsRegistry = {
       id: 'synth_sunset',
       name: 'Astral Sanctum',
       shape: 'chamfer_shield',
-      pattern: 'chevron_lanes',
+      pattern: 'astral_mandala',
       surface: '#190e26',
       surfaceHighlight: 'rgba(244, 114, 182, 0.09)',
       surfaceShadow: 'rgba(251, 146, 60, 0.08)',
@@ -1088,7 +1102,7 @@ export const SKINS: SkinsRegistry = {
       id: 'apex_legend',
       name: 'Apex Legend',
       shape: 'hex_diamond',
-      pattern: 'royal_crest',
+      pattern: 'apex_throne', // <-- Changed from 'royal_crest'
       surface: '#09090d',
       surfaceHighlight: 'rgba(250, 204, 21, 0.11)',
       surfaceShadow: 'rgba(180, 83, 9, 0.1)',
