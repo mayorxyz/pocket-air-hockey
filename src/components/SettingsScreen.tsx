@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, ChevronLeft, ChevronRight, Coins } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Coins, Unlock } from 'lucide-react';
 import { SkinCategory } from '../game/skins';
 import {
   APP_VERSION,
@@ -17,6 +17,7 @@ interface SettingsScreenProps {
   onSelectOrBuySkin: (category: SkinCategory, id: string) => { ok: boolean; reason?: string };
   onResetStats: () => void;
   onResetSettings: () => void;
+  onDevUnlockAll: () => void;
   onOpenHowTo: () => void;
   onBack: () => void;
 }
@@ -100,10 +101,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onSelectOrBuySkin,
   onResetStats,
   onResetSettings,
+  onDevUnlockAll,
   onOpenHowTo,
   onBack,
 }) => {
-  const [confirmKind, setConfirmKind] = useState<'stats' | 'settings' | null>(null);
+  const [confirmKind, setConfirmKind] = useState<'stats' | 'settings' | 'dev-unlock' | null>(null);
   const { settings } = save;
 
   return (
@@ -354,6 +356,24 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </div>
         </section>
 
+        {import.meta.env.DEV && (
+          <section>
+            <h2 className="font-display text-sm font-extrabold text-amber-300 mb-2 px-1">
+              Developer Testing
+            </h2>
+            <div className="rounded-2xl bg-amber-950/35 border border-amber-300/25 overflow-hidden shadow-lg">
+              <button
+                type="button"
+                onClick={() => setConfirmKind('dev-unlock')}
+                className="w-full min-h-[3.25rem] px-4 py-3 flex items-center gap-2 text-left text-sm sm:text-base font-bold text-amber-100 hover:bg-amber-300/10 transition-colors cursor-pointer"
+              >
+                <Unlock className="w-4 h-4 shrink-0" aria-hidden="true" />
+                Unlock all for testing
+              </button>
+            </div>
+          </section>
+        )}
+
         <section>
           <h2 className="font-display text-sm font-extrabold text-[#b8c7d3] mb-2 px-1">
             Info
@@ -401,6 +421,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           confirmLabel="Reset settings"
           onConfirm={() => {
             onResetSettings();
+            setConfirmKind(null);
+          }}
+          onCancel={() => setConfirmKind(null)}
+        />
+      )}
+
+      {confirmKind === 'dev-unlock' && (
+        <ConfirmDialog
+          title="Unlock everything for testing?"
+          message="This marks every stage as complete with 3 stars, unlocks all skins and achievements, and adds test coins to this save. This developer-only option is hidden from production builds."
+          confirmLabel="Unlock everything"
+          onConfirm={() => {
+            onDevUnlockAll();
             setConfirmKind(null);
           }}
           onCancel={() => setConfirmKind(null)}

@@ -1,3 +1,27 @@
+import {
+  MatchResult,
+  PlayerStats,
+} from './types';
+
+export interface AchievementDef {
+  id: string;
+  name: string;
+  desc: string;
+  points?: number;
+  target?: number;
+  progress?: (stats: PlayerStats) => number;
+  check: (stats: PlayerStats, matchResult: MatchResult) => boolean;
+}
+
+export interface DailyChallengeDef {
+  id: string;
+  title: string;
+  desc: string;
+  target: number;
+  reward: number;
+  increment: (result: MatchResult) => number;
+}
+
 export const ACHIEVEMENTS: AchievementDef[] = [
   // ── Existing ───────────────────────────────────
   {
@@ -363,7 +387,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (_s, m) =>
       m.opponentType === 'ai' &&
       m.hasOpponent &&
-      m.personality === 'adaptive_grandmaster' &&
+      (m.personality as string) === 'adaptive_grandmaster' &&
       m.won,
     points: 80,
   },
@@ -374,7 +398,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (_s, m) =>
       m.opponentType === 'ai' &&
       m.hasOpponent &&
-      m.personality === 'adaptive_eternal' &&
+      (m.personality as string) === 'adaptive_eternal' &&
       m.won,
     points: 100,
   },
@@ -385,7 +409,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (_s, m) =>
       m.opponentType === 'ai' &&
       m.hasOpponent &&
-      m.personality === 'adaptive_immortal' &&
+      (m.personality as string) === 'adaptive_immortal' &&
       m.won,
     points: 150,
   },
@@ -542,14 +566,14 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     id: 'boss_first',
     name: 'Boss Breaker',
     desc: 'Defeat your first boss stage',
-    check: (_s, m) => m.isBoss && m.won,
+    check: (_s, m) => (m.isBoss ?? false) && m.won,
     points: 40,
   },
   {
     id: 'boss_3star',
     name: 'Boss Perfect',
     desc: 'Earn 3 stars on a boss stage',
-    check: (_s, m) => m.isBoss && m.won && (m.starsEarned ?? 0) >= 3,
+    check: (_s, m) => (m.isBoss ?? false) && m.won && (m.starsEarned ?? 0) >= 3,
     points: 70,
   },
 
@@ -559,8 +583,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     name: 'Pocket Change',
     desc: 'Hold 100 coins at once',
     target: 100,
-    progress: (s) => Math.min(100, s.coins),
-    check: (s) => s.coins >= 100,
+    progress: (s) => Math.min(100, s.coins ?? 0),
+    check: (s) => (s.coins ?? 0) >= 100,
     points: 20,
   },
   {
@@ -568,8 +592,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     name: 'Saver',
     desc: 'Hold 500 coins at once',
     target: 500,
-    progress: (s) => Math.min(500, s.coins),
-    check: (s) => s.coins >= 500,
+    progress: (s) => Math.min(500, s.coins ?? 0),
+    check: (s) => (s.coins ?? 0) >= 500,
     points: 50,
   },
   {
@@ -577,8 +601,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     name: 'Rich',
     desc: 'Hold 1,000 coins at once',
     target: 1000,
-    progress: (s) => Math.min(1000, s.coins),
-    check: (s) => s.coins >= 1000,
+    progress: (s) => Math.min(1000, s.coins ?? 0),
+    check: (s) => (s.coins ?? 0) >= 1000,
     points: 100,
   },
   {
@@ -661,7 +685,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     id: 'double_puck_win',
     name: 'Double Trouble',
     desc: 'Win a match while double-puck is active',
-    check: (_s, m) => m.doublePuckActive && m.won,
+    check: (_s, m) => (m.doublePuckActive ?? false) && m.won,
     points: 35,
   },
   {
@@ -744,7 +768,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     id: 'own_goal_survive',
     name: 'Shake It Off',
     desc: 'Win a match after conceding first',
-    check: (_s, m) => m.hasOpponent && m.won && m.concededFirst,
+    check: (_s, m) => m.hasOpponent && m.won && (m.concededFirst ?? false),
     points: 20,
   },
   {
@@ -762,78 +786,9 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     points: 70,
   },
 ];
-Notes
-points — use this when the achievement unlocks (coins, XP, or score). Higher tiers give bigger rewards.
-Some checks use optional save fields (shutouts, totalCoinsEarned, unlockedTables, etc.). If you don’t track them yet, either add them to save data or remove those achievements.
-Match object m may need fields like isBoss, starsEarned, durationSec, longestRally, doublePuckActive, powerupsThisMatch, concededFirst, winCondition — wire these from your match result.
-This is ~90 achievements. If you want another batch (world-specific, skin-specific, or daily-style), say which direction and I’ll generate more.
-
-and then daily challenge  with max pint to gain 10 and this challge should be easy i need hundreds of it 
-export interface DailyChallengeDef {
-  id: string;
-  title: string;
-  desc: string;
-  target: number;
-  reward: number;
-  increment: (result: MatchResult) => number;
-}
 
 export const CHALLENGES: DailyChallengeDef[] = [
-  {
-    id: 'win_hard_3',
-    title: 'Hard Challenger',
-    desc: 'Win 3 matches on Hard difficulty',
-    target: 3,
-    reward: 30,
-    increment: (m) => (m.opponentType === 'ai' && m.hasOpponent && m.difficulty === 'hard' && m.won ? 1 : 0),
-  },
-  {
-    id: 'score_10',
-    title: 'Goal Machine',
-    desc: 'Score 10 goals in matches today',
-    target: 10,
-    reward: 30,
-    increment: (m) => (m.hasOpponent ? m.playerScore : 0),
-  },
-  {
-    id: 'shutout_1',
-    title: 'Brick Wall',
-    desc: 'Win a match with 0 goals conceded',
-    target: 1,
-    reward: 30,
-    increment: (m) => (m.hasOpponent && m.won && m.opponentScore === 0 ? 1 : 0),
-  },
-  {
-    id: 'powerups_5',
-    title: 'Power Collector',
-    desc: 'Collect 5 power-ups today',
-    target: 5,
-    reward: 30,
-    increment: (m) => m.powerupsCollected,
-  },
-  {
-    id: 'win_3',
-    title: 'Hat Trick',
-    desc: 'Win 3 matches today',
-    target: 3,
-    reward: 30,
-    increment: (m) => (m.hasOpponent && m.won ? 1 : 0),
-  },
-];
-Here’s a large pool of easy daily challenges — all with reward ≤ 10, low targets, and achievable in a few casual matches. Use them as a pool and pick 1–3 at random each day.
-
-ts
-export interface DailyChallengeDef {
-  id: string;
-  title: string;
-  desc: string;
-  target: number;
-  reward: number;
-  increment: (result: MatchResult) => number;
-}
-
-export const CHALLENGES: DailyChallengeDef[] = [
-  // ── Wins (easy) ────────────────────────────────
+  // -- Wins (easy) --------------------------------
   {
     id: 'win_1',
     title: 'First Blood',
@@ -903,1061 +858,6 @@ export const CHALLENGES: DailyChallengeDef[] = [
     increment: (m) =>
       m.opponentType === 'ai' && m.hasOpponent && m.difficulty === 'hard' && m.won ? 1 : 0,
   },
-
-  // ── Goals scored ───────────────────────────────
-  {
-    id: 'score_3',
-    title: 'Open the Scoring',
-    desc: 'Score 3 goals today',
-    target: 3,
-    reward: 5,
-    increment: (m) => (m.hasOpponent ? m.playerScore : 0),
-  },
-  {
-    id: 'score_5',
-    title: 'Goal Getter',
-    desc: 'Score 5 goals today',
-    target: 5,
-    reward: 7,
-    increment: (m) => (m.hasOpponent ? m.playerScore : 0),
-  },
-  {
-    id: 'score_8',
-    title: 'In Form',
-    desc: 'Score 8 goals today',
-    target: 8,
-    reward: 9,
-    increment: (m) => (m.hasOpponent ? m.playerScore : 0),
-  },
-  {
-    id: 'score_10',
-    title: 'Goal Machine',
-    desc: 'Score 10 goals today',
-    target: 10,
-    reward: 10,
-    increment: (m) => (m.hasOpponent ? m.playerScore : 0),
-  },
-  {
-    id: 'score_1_match',
-    title: 'Get on the Board',
-    desc: 'Score at least 1 goal in a match',
-    target: 1,
-    reward: 3,
-    increment: (m) => (m.hasOpponent && m.playerScore >= 1 ? 1 : 0),
-  },
-  {
-    id: 'score_3_match',
-    title: 'Hat Trick',
-    desc: 'Score 3+ goals in a single match',
-    target: 1,
-    reward: 8,
-    increment: (m) => (m.hasOpponent && m.playerScore >= 3 ? 1 : 0),
-  },
-  {
-    id: 'score_5_match',
-    title: 'High Scorer',
-    desc: 'Score 5+ goals in a single match',
-    target: 1,
-    reward: 10,
-    increment: (m) => (m.hasOpponent && m.playerScore >= 5 ? 1 : 0),
-  },
-
-  // ── Clean sheets / defense ─────────────────────
-  {
-    id: 'shutout_1',
-    title: 'Brick Wall',
-    desc: 'Win a match with 0 goals conceded',
-    target: 1,
-    reward: 8,
-    increment: (m) => (m.hasOpponent && m.won && m.opponentScore === 0 ? 1 : 0),
-  },
-  {
-    id: 'concede_under_2',
-    title: 'Tight Defense',
-    desc: 'Win while conceding 2 or fewer goals',
-    target: 1,
-    reward: 6,
-    increment: (m) => (m.hasOpponent && m.won && m.opponentScore <= 2 ? 1 : 0),
-  },
-  {
-    id: 'concede_under_1',
-    title: 'Almost Perfect',
-    desc: 'Win while conceding 1 or fewer goals',
-    target: 1,
-    reward: 7,
-    increment: (m) => (m.hasOpponent && m.won && m.opponentScore <= 1 ? 1 : 0),
-  },
-
-  // ── Play volume ────────────────────────────────
-  {
-    id: 'play_1',
-    title: 'Show Up',
-    desc: 'Finish 1 match today',
-    target: 1,
-    reward: 3,
-    increment: (m) => (m.hasOpponent ? 1 : 0),
-  },
-  {
-    id: 'play_2',
-    title: 'Double Session',
-    desc: 'Finish 2 matches today',
-    target: 2,
-    reward: 5,
-    increment: (m) => (m.hasOpponent ? 1 : 0),
-  },
-  {
-    id: 'play_3',
-    title: 'Triple Session',
-    desc: 'Finish 3 matches today',
-    target: 3,
-    reward: 8,
-    increment: (m) => (m.hasOpponent ? 1 : 0),
-  },
-  {
-    id: 'play_4',
-    title: 'Keep Playing',
-    desc: 'Finish 4 matches today',
-    target: 4,
-    reward: 10,
-    increment: (m) => (m.hasOpponent ? 1 : 0),
-  },
-
-  // ── Hits ───────────────────────────────────────
-  {
-    id: 'hits_20',
-    title: 'Warm Hands',
-    desc: 'Hit the puck 20 times today',
-    target: 20,
-    reward: 4,
-    increment: (m) => m.hits ?? 0,
-  },
-  {
-    id: 'hits_40',
-    title: 'Active Stick',
-    desc: 'Hit the puck 40 times today',
-    target: 40,
-    reward: 6,
-    increment: (m) => m.hits ?? 0,
-  },
-  {
-    id: 'hits_60',
-    title: 'Busy Day',
-    desc: 'Hit the puck 60 times today',
-    target: 60,
-    reward: 8,
-    increment: (m) => m.hits ?? 0,
-  },
-  {
-    id: 'hits_80',
-    title: 'Slap Festival',
-    desc: 'Hit the puck 80 times today',
-    target: 80,
-    reward: 10,
-    increment: (m) => m.hits ?? 0,
-  },
-
-  // ── Power-ups ──────────────────────────────────
-  {
-    id: 'powerups_1',
-    title: 'Power Nibble',
-    desc: 'Collect 1 power-up today',
-    target: 1,
-    reward: 4,
-    increment: (m) => m.powerupsCollected ?? 0,
-  },
-  {
-    id: 'powerups_2',
-    title: 'Power Snack',
-    desc: 'Collect 2 power-ups today',
-    target: 2,
-    reward: 6,
-    increment: (m) => m.powerupsCollected ?? 0,
-  },
-  {
-    id: 'powerups_3',
-    title: 'Power Bite',
-    desc: 'Collect 3 power-ups today',
-    target: 3,
-    reward: 8,
-    increment: (m) => m.powerupsCollected ?? 0,
-  },
-  {
-    id: 'powerups_5',
-    title: 'Power Collector',
-    desc: 'Collect 5 power-ups today',
-    target: 5,
-    reward: 10,
-    increment: (m) => m.powerupsCollected ?? 0,
-  },
-
-  // ── Margins & style ────────────────────────────
-  {
-    id: 'win_by_2',
-    title: 'Comfortable Win',
-    desc: 'Win a match by 2+ goals',
-    target: 1,
-    reward: 6,
-    increment: (m) =>
-      m.hasOpponent && m.won && m.playerScore - m.opponentScore >= 2 ? 1 : 0,
-  },
-  {
-    id: 'win_by_3',
-    title: 'Clear Winner',
-    desc: 'Win a match by 3+ goals',
-    target: 1,
-    reward: 8,
-    increment: (m) =>
-      m.hasOpponent && m.won && m.playerScore - m.opponentScore >= 3 ? 1 : 0,
-  },
-  {
-    id: 'win_by_1',
-    title: 'Narrow Escape',
-    desc: 'Win a match by exactly 1 goal',
-    target: 1,
-    reward: 7,
-    increment: (m) =>
-      m.hasOpponent && m.won && m.playerScore - m.opponentScore === 1 ? 1 : 0,
-  },
-  {
-    id: 'score_first',
-    title: 'First Strike',
-    desc: 'Score the first goal in a match',
-    target: 1,
-    reward: 5,
-    increment: (m) => (m.scoredFirst ? 1 : 0),
-  },
-
-  // ── Speed (mild) ───────────────────────────────
-  {
-    id: 'speed_800',
-    title: 'Zip It',
-    desc: 'Hit a puck at 800+ speed',
-    target: 1,
-    reward: 5,
-    increment: (m) => ((m.maxPuckSpeed ?? 0) >= 800 ? 1 : 0),
-  },
-  {
-    id: 'speed_1000',
-    title: 'Fast Shot',
-    desc: 'Hit a puck at 1000+ speed',
-    target: 1,
-    reward: 7,
-    increment: (m) => ((m.maxPuckSpeed ?? 0) >= 1000 ? 1 : 0),
-  },
-  {
-    id: 'speed_1200',
-    title: 'Rocket',
-    desc: 'Hit a puck at 1200+ speed',
-    target: 1,
-    reward: 10,
-    increment: (m) => ((m.maxPuckSpeed ?? 0) >= 1200 ? 1 : 0),
-  },
-
-  // ── Personality / AI flavor ────────────────────
-  {
-    id: 'beat_attacker_1',
-    title: 'Stop the Attack',
-    desc: 'Beat an Attacker AI once',
-    target: 1,
-    reward: 7,
-    increment: (m) =>
-      m.opponentType === 'ai' && m.hasOpponent && m.personality === 'attacker' && m.won ? 1 : 0,
-  },
-  {
-    id: 'beat_defender_1',
-    title: 'Crack the Wall',
-    desc: 'Beat a Defender AI once',
-    target: 1,
-    reward: 7,
-    increment: (m) =>
-      m.opponentType === 'ai' && m.hasOpponent && m.personality === 'defender' && m.won ? 1 : 0,
-  },
-  {
-    id: 'beat_balanced_1',
-    title: 'All-Rounder',
-    desc: 'Beat a Balanced AI once',
-    target: 1,
-    reward: 6,
-    increment: (m) =>
-      m.opponentType === 'ai' && m.hasOpponent && m.personality === 'balanced' && m.won ? 1 : 0,
-  },
-
-  // ── Match types ────────────────────────────────
-  {
-    id: 'win_sudden_1',
-    title: 'Sudden Win',
-    desc: 'Win a sudden-death match',
-    target: 1,
-    reward: 8,
-    increment: (m) => (m.winCondition === 'sudden_death' && m.won ? 1 : 0),
-  },
-  {
-    id: 'win_timed_1',
-    title: 'Beat the Clock',
-    desc: 'Win a timed match',
-    target: 1,
-    reward: 7,
-    increment: (m) => (m.winCondition === 'timed' && m.won ? 1 : 0),
-  },
-  {
-    id: 'win_first_to_1',
-    title: 'Race to Win',
-    desc: 'Win a first-to-X match',
-    target: 1,
-    reward: 5,
-    increment: (m) =>
-      m.winCondition !== 'sudden_death' && m.winCondition !== 'timed' && m.won ? 1 : 0,
-  },
-
-  // ── Simple combos ──────────────────────────────
-  {
-    id: 'win_and_score_3',
-    title: 'Solid Match',
-    desc: 'Win a match and score 3+ goals',
-    target: 1,
-    reward: 8,
-    increment: (m) => (m.hasOpponent && m.won && m.playerScore >= 3 ? 1 : 0),
-  },
-  {
-    id: 'win_no_concede_2',
-    title: 'Steady Defense',
-    desc: 'Win while conceding at most 2',
-    target: 1,
-    reward: 6,
-    increment: (m) => (m.hasOpponent && m.won && m.opponentScore <= 2 ? 1 : 0),
-  },
-  {
-    id: 'two_wins_same_day',
-    title: 'Back to Back',
-    desc: 'Win 2 matches today',
-    target: 2,
-    reward: 8,
-    increment: (m) => (m.hasOpponent && m.won ? 1 : 0),
-  },
-
-  // ── Rally / activity ───────────────────────────
-  {
-    id: 'rally_8',
-    title: 'Short Rally',
-    desc: 'Have a rally of 8+ hits',
-    target: 1,
-    reward: 5,
-    increment: (m) => ((m.longestRally ?? 0) >= 8 ? 1 : 0),
-  },
-  {
-    id: 'rally_12',
-    title: 'Nice Rally',
-    desc: 'Have a rally of 12+ hits',
-    target: 1,
-    reward: 7,
-    increment: (m) => ((m.longestRally ?? 0) >= 12 ? 1 : 0),
-  },
-  {
-    id: 'rally_15',
-    title: 'Long Rally',
-    desc: 'Have a rally of 15+ hits',
-    target: 1,
-    reward: 9,
-    increment: (m) => ((m.longestRally ?? 0) >= 15 ? 1 : 0),
-  },
-
-  // ── Comeback (mild) ────────────────────────────
-  {
-    id: 'comeback_1',
-    title: 'Turnaround',
-    desc: 'Win after trailing by 1+ goal',
-    target: 1,
-    reward: 7,
-    increment: (m) => (m.hasOpponent && m.won && (m.maxDeficit ?? 0) >= 1 ? 1 : 0),
-  },
-  {
-    id: 'comeback_2',
-    title: 'Fight Back',
-    desc: 'Win after trailing by 2+ goals',
-    target: 1,
-    reward: 9,
-    increment: (m) => (m.hasOpponent && m.won && (m.maxDeficit ?? 0) >= 2 ? 1 : 0),
-  },
-
-  // ── Campaign-ish (if match knows stage) ────────
-  {
-    id: 'clear_stage_1',
-    title: 'Stage Clear',
-    desc: 'Clear any campaign stage today',
-    target: 1,
-    reward: 8,
-    increment: (m) => (m.isStage && m.won ? 1 : 0),
-  },
-  {
-    id: 'stage_star_1',
-    title: 'Star Seeker',
-    desc: 'Earn at least 1 star on a stage',
-    target: 1,
-    reward: 6,
-    increment: (m) => (m.isStage && (m.starsEarned ?? 0) >= 1 ? 1 : 0),
-  },
-  {
-    id: 'stage_star_2',
-    title: 'Double Star',
-    desc: 'Earn 2+ stars on a stage',
-    target: 1,
-    reward: 9,
-    increment: (m) => (m.isStage && (m.starsEarned ?? 0) >= 2 ? 1 : 0),
-  },
-
-  // ── Fun / filler easy ones ─────────────────────
-  {
-    id: 'finish_match',
-    title: 'Just Play',
-    desc: 'Complete any match',
-    target: 1,
-    reward: 3,
-    increment: (m) => (m.hasOpponent ? 1 : 0),
-  },
-  {
-    id: 'score_any',
-    title: 'Light the Lamp',
-    desc: 'Score a goal today',
-    target: 1,
-    reward: 4,
-    increment: (m) => (m.hasOpponent && m.playerScore > 0 ? 1 : 0),
-  },
-  {
-    id: 'win_or_score',
-    title: 'Something Good',
-    desc: 'Win a match or score 3 goals in one',
-    target: 1,
-    reward: 6,
-    increment: (m) =>
-      m.hasOpponent && (m.won || m.playerScore >= 3) ? 1 : 0,
-  },
-  {
-    id: 'no_blowout_loss',
-    title: 'Stay Close',
-    desc: 'Finish a match without losing by 4+',
-    target: 1,
-    reward: 4,
-    increment: (m) =>
-      m.hasOpponent && !(m.opponentScore - m.playerScore >= 4 && !m.won) ? 1 : 0,
-  },
-  {
-    id: 'hits_10_match',
-    title: 'Stay Active',
-    desc: 'Record 10+ hits in a single match',
-    target: 1,
-    reward: 4,
-    increment: (m) => ((m.hits ?? 0) >= 10 ? 1 : 0),
-  },
-  {
-    id: 'hits_20_match',
-    title: 'Work Rate',
-    desc: 'Record 20+ hits in a single match',
-    target: 1,
-    reward: 6,
-    increment: (m) => ((m.hits ?? 0) >= 20 ? 1 : 0),
-  },
-  {
-    id: 'goals_and_win',
-    title: 'Complete Package',
-    desc: 'Win and score at least 2 goals',
-    target: 1,
-    reward: 7,
-    increment: (m) => (m.hasOpponent && m.won && m.playerScore >= 2 ? 1 : 0),
-  },
-  {
-    id: 'play_ai',
-    title: 'Vs AI',
-    desc: 'Play a match against AI',
-    target: 1,
-    reward: 3,
-    increment: (m) => (m.opponentType === 'ai' && m.hasOpponent ? 1 : 0),
-  },
-  {
-    id: 'win_ai',
-    title: 'AI Down',
-    desc: 'Win against AI',
-    target: 1,
-    reward: 5,
-    increment: (m) => (m.opponentType === 'ai' && m.hasOpponent && m.won ? 1 : 0),
-  },
-  {
-    id: 'two_goals_two_matches',
-    title: 'Consistent',
-    desc: 'Score 2+ goals in two different matches',
-    target: 2,
-    reward: 8,
-    increment: (m) => (m.hasOpponent && m.playerScore >= 2 ? 1 : 0),
-  },
-];
-
-
-export interface DailyChallengeDef {
-  id: string;
-  title: string;
-  desc: string;
-  target: number;
-  reward: number;
-  increment: (result: MatchResult) => number;
-}
-
-export const CHALLENGES: DailyChallengeDef[] = [
-  // ── Wins (easy) ────────────────────────────────
-  {
-    id: 'win_1',
-    title: 'First Blood',
-    desc: 'Win 1 match today',
-    target: 1,
-    reward: 5,
-    increment: (m) => (m.hasOpponent && m.won ? 1 : 0),
-  },
-  {
-    id: 'win_2',
-    title: 'Double Up',
-    desc: 'Win 2 matches today',
-    target: 2,
-    reward: 8,
-    increment: (m) => (m.hasOpponent && m.won ? 1 : 0),
-  },
-  {
-    id: 'win_3',
-    title: 'Hat Trick Wins',
-    desc: 'Win 3 matches today',
-    target: 3,
-    reward: 10,
-    increment: (m) => (m.hasOpponent && m.won ? 1 : 0),
-  },
-  {
-    id: 'win_easy_1',
-    title: 'Easy Does It',
-    desc: 'Win 1 match on Easy',
-    target: 1,
-    reward: 4,
-    increment: (m) =>
-      m.opponentType === 'ai' && m.hasOpponent && m.difficulty === 'easy' && m.won ? 1 : 0,
-  },
-  {
-    id: 'win_easy_2',
-    title: 'Easy Streak',
-    desc: 'Win 2 matches on Easy',
-    target: 2,
-    reward: 7,
-    increment: (m) =>
-      m.opponentType === 'ai' && m.hasOpponent && m.difficulty === 'easy' && m.won ? 1 : 0,
-  },
-  {
-    id: 'win_medium_1',
-    title: 'Medium Warm-Up',
-    desc: 'Win 1 match on Medium',
-    target: 1,
-    reward: 6,
-    increment: (m) =>
-      m.opponentType === 'ai' && m.hasOpponent && m.difficulty === 'medium' && m.won ? 1 : 0,
-  },
-  {
-    id: 'win_medium_2',
-    title: 'Medium Rider',
-    desc: 'Win 2 matches on Medium',
-    target: 2,
-    reward: 9,
-    increment: (m) =>
-      m.opponentType === 'ai' && m.hasOpponent && m.difficulty === 'medium' && m.won ? 1 : 0,
-  },
-  {
-    id: 'win_hard_1',
-    title: 'Hard Starter',
-    desc: 'Win 1 match on Hard',
-    target: 1,
-    reward: 10,
-    increment: (m) =>
-      m.opponentType === 'ai' && m.hasOpponent && m.difficulty === 'hard' && m.won ? 1 : 0,
-  },
-
-  // ── Goals scored ───────────────────────────────
-  {
-    id: 'score_3',
-    title: 'Open the Scoring',
-    desc: 'Score 3 goals today',
-    target: 3,
-    reward: 5,
-    increment: (m) => (m.hasOpponent ? m.playerScore : 0),
-  },
-  {
-    id: 'score_5',
-    title: 'Goal Getter',
-    desc: 'Score 5 goals today',
-    target: 5,
-    reward: 7,
-    increment: (m) => (m.hasOpponent ? m.playerScore : 0),
-  },
-  {
-    id: 'score_8',
-    title: 'In Form',
-    desc: 'Score 8 goals today',
-    target: 8,
-    reward: 9,
-    increment: (m) => (m.hasOpponent ? m.playerScore : 0),
-  },
-  {
-    id: 'score_10',
-    title: 'Goal Machine',
-    desc: 'Score 10 goals today',
-    target: 10,
-    reward: 10,
-    increment: (m) => (m.hasOpponent ? m.playerScore : 0),
-  },
-  {
-    id: 'score_1_match',
-    title: 'Get on the Board',
-    desc: 'Score at least 1 goal in a match',
-    target: 1,
-    reward: 3,
-    increment: (m) => (m.hasOpponent && m.playerScore >= 1 ? 1 : 0),
-  },
-  {
-    id: 'score_3_match',
-    title: 'Hat Trick',
-    desc: 'Score 3+ goals in a single match',
-    target: 1,
-    reward: 8,
-    increment: (m) => (m.hasOpponent && m.playerScore >= 3 ? 1 : 0),
-  },
-  {
-    id: 'score_5_match',
-    title: 'High Scorer',
-    desc: 'Score 5+ goals in a single match',
-    target: 1,
-    reward: 10,
-    increment: (m) => (m.hasOpponent && m.playerScore >= 5 ? 1 : 0),
-  },
-
-  // ── Clean sheets / defense ─────────────────────
-  {
-    id: 'shutout_1',
-    title: 'Brick Wall',
-    desc: 'Win a match with 0 goals conceded',
-    target: 1,
-    reward: 8,
-    increment: (m) => (m.hasOpponent && m.won && m.opponentScore === 0 ? 1 : 0),
-  },
-  {
-    id: 'concede_under_2',
-    title: 'Tight Defense',
-    desc: 'Win while conceding 2 or fewer goals',
-    target: 1,
-    reward: 6,
-    increment: (m) => (m.hasOpponent && m.won && m.opponentScore <= 2 ? 1 : 0),
-  },
-  {
-    id: 'concede_under_1',
-    title: 'Almost Perfect',
-    desc: 'Win while conceding 1 or fewer goals',
-    target: 1,
-    reward: 7,
-    increment: (m) => (m.hasOpponent && m.won && m.opponentScore <= 1 ? 1 : 0),
-  },
-
-  // ── Play volume ────────────────────────────────
-  {
-    id: 'play_1',
-    title: 'Show Up',
-    desc: 'Finish 1 match today',
-    target: 1,
-    reward: 3,
-    increment: (m) => (m.hasOpponent ? 1 : 0),
-  },
-  {
-    id: 'play_2',
-    title: 'Double Session',
-    desc: 'Finish 2 matches today',
-    target: 2,
-    reward: 5,
-    increment: (m) => (m.hasOpponent ? 1 : 0),
-  },
-  {
-    id: 'play_3',
-    title: 'Triple Session',
-    desc: 'Finish 3 matches today',
-    target: 3,
-    reward: 8,
-    increment: (m) => (m.hasOpponent ? 1 : 0),
-  },
-  {
-    id: 'play_4',
-    title: 'Keep Playing',
-    desc: 'Finish 4 matches today',
-    target: 4,
-    reward: 10,
-    increment: (m) => (m.hasOpponent ? 1 : 0),
-  },
-
-  // ── Hits ───────────────────────────────────────
-  {
-    id: 'hits_20',
-    title: 'Warm Hands',
-    desc: 'Hit the puck 20 times today',
-    target: 20,
-    reward: 4,
-    increment: (m) => m.hits ?? 0,
-  },
-  {
-    id: 'hits_40',
-    title: 'Active Stick',
-    desc: 'Hit the puck 40 times today',
-    target: 40,
-    reward: 6,
-    increment: (m) => m.hits ?? 0,
-  },
-  {
-    id: 'hits_60',
-    title: 'Busy Day',
-    desc: 'Hit the puck 60 times today',
-    target: 60,
-    reward: 8,
-    increment: (m) => m.hits ?? 0,
-  },
-  {
-    id: 'hits_80',
-    title: 'Slap Festival',
-    desc: 'Hit the puck 80 times today',
-    target: 80,
-    reward: 10,
-    increment: (m) => m.hits ?? 0,
-  },
-
-  // ── Power-ups ──────────────────────────────────
-  {
-    id: 'powerups_1',
-    title: 'Power Nibble',
-    desc: 'Collect 1 power-up today',
-    target: 1,
-    reward: 4,
-    increment: (m) => m.powerupsCollected ?? 0,
-  },
-  {
-    id: 'powerups_2',
-    title: 'Power Snack',
-    desc: 'Collect 2 power-ups today',
-    target: 2,
-    reward: 6,
-    increment: (m) => m.powerupsCollected ?? 0,
-  },
-  {
-    id: 'powerups_3',
-    title: 'Power Bite',
-    desc: 'Collect 3 power-ups today',
-    target: 3,
-    reward: 8,
-    increment: (m) => m.powerupsCollected ?? 0,
-  },
-  {
-    id: 'powerups_5',
-    title: 'Power Collector',
-    desc: 'Collect 5 power-ups today',
-    target: 5,
-    reward: 10,
-    increment: (m) => m.powerupsCollected ?? 0,
-  },
-
-  // ── Margins & style ────────────────────────────
-  {
-    id: 'win_by_2',
-    title: 'Comfortable Win',
-    desc: 'Win a match by 2+ goals',
-    target: 1,
-    reward: 6,
-    increment: (m) =>
-      m.hasOpponent && m.won && m.playerScore - m.opponentScore >= 2 ? 1 : 0,
-  },
-  {
-    id: 'win_by_3',
-    title: 'Clear Winner',
-    desc: 'Win a match by 3+ goals',
-    target: 1,
-    reward: 8,
-    increment: (m) =>
-      m.hasOpponent && m.won && m.playerScore - m.opponentScore >= 3 ? 1 : 0,
-  },
-  {
-    id: 'win_by_1',
-    title: 'Narrow Escape',
-    desc: 'Win a match by exactly 1 goal',
-    target: 1,
-    reward: 7,
-    increment: (m) =>
-      m.hasOpponent && m.won && m.playerScore - m.opponentScore === 1 ? 1 : 0,
-  },
-  {
-    id: 'score_first',
-    title: 'First Strike',
-    desc: 'Score the first goal in a match',
-    target: 1,
-    reward: 5,
-    increment: (m) => (m.scoredFirst ? 1 : 0),
-  },
-
-  // ── Speed (mild) ───────────────────────────────
-  {
-    id: 'speed_800',
-    title: 'Zip It',
-    desc: 'Hit a puck at 800+ speed',
-    target: 1,
-    reward: 5,
-    increment: (m) => ((m.maxPuckSpeed ?? 0) >= 800 ? 1 : 0),
-  },
-  {
-    id: 'speed_1000',
-    title: 'Fast Shot',
-    desc: 'Hit a puck at 1000+ speed',
-    target: 1,
-    reward: 7,
-    increment: (m) => ((m.maxPuckSpeed ?? 0) >= 1000 ? 1 : 0),
-  },
-  {
-    id: 'speed_1200',
-    title: 'Rocket',
-    desc: 'Hit a puck at 1200+ speed',
-    target: 1,
-    reward: 10,
-    increment: (m) => ((m.maxPuckSpeed ?? 0) >= 1200 ? 1 : 0),
-  },
-
-  // ── Personality / AI flavor ────────────────────
-  {
-    id: 'beat_attacker_1',
-    title: 'Stop the Attack',
-    desc: 'Beat an Attacker AI once',
-    target: 1,
-    reward: 7,
-    increment: (m) =>
-      m.opponentType === 'ai' && m.hasOpponent && m.personality === 'attacker' && m.won ? 1 : 0,
-  },
-  {
-    id: 'beat_defender_1',
-    title: 'Crack the Wall',
-    desc: 'Beat a Defender AI once',
-    target: 1,
-    reward: 7,
-    increment: (m) =>
-      m.opponentType === 'ai' && m.hasOpponent && m.personality === 'defender' && m.won ? 1 : 0,
-  },
-  {
-    id: 'beat_balanced_1',
-    title: 'All-Rounder',
-    desc: 'Beat a Balanced AI once',
-    target: 1,
-    reward: 6,
-    increment: (m) =>
-      m.opponentType === 'ai' && m.hasOpponent && m.personality === 'balanced' && m.won ? 1 : 0,
-  },
-
-  // ── Match types ────────────────────────────────
-  {
-    id: 'win_sudden_1',
-    title: 'Sudden Win',
-    desc: 'Win a sudden-death match',
-    target: 1,
-    reward: 8,
-    increment: (m) => (m.winCondition === 'sudden_death' && m.won ? 1 : 0),
-  },
-  {
-    id: 'win_timed_1',
-    title: 'Beat the Clock',
-    desc: 'Win a timed match',
-    target: 1,
-    reward: 7,
-    increment: (m) => (m.winCondition === 'timed' && m.won ? 1 : 0),
-  },
-  {
-    id: 'win_first_to_1',
-    title: 'Race to Win',
-    desc: 'Win a first-to-X match',
-    target: 1,
-    reward: 5,
-    increment: (m) =>
-      m.winCondition !== 'sudden_death' && m.winCondition !== 'timed' && m.won ? 1 : 0,
-  },
-
-  // ── Simple combos ──────────────────────────────
-  {
-    id: 'win_and_score_3',
-    title: 'Solid Match',
-    desc: 'Win a match and score 3+ goals',
-    target: 1,
-    reward: 8,
-    increment: (m) => (m.hasOpponent && m.won && m.playerScore >= 3 ? 1 : 0),
-  },
-  {
-    id: 'win_no_concede_2',
-    title: 'Steady Defense',
-    desc: 'Win while conceding at most 2',
-    target: 1,
-    reward: 6,
-    increment: (m) => (m.hasOpponent && m.won && m.opponentScore <= 2 ? 1 : 0),
-  },
-  {
-    id: 'two_wins_same_day',
-    title: 'Back to Back',
-    desc: 'Win 2 matches today',
-    target: 2,
-    reward: 8,
-    increment: (m) => (m.hasOpponent && m.won ? 1 : 0),
-  },
-
-  // ── Rally / activity ───────────────────────────
-  {
-    id: 'rally_8',
-    title: 'Short Rally',
-    desc: 'Have a rally of 8+ hits',
-    target: 1,
-    reward: 5,
-    increment: (m) => ((m.longestRally ?? 0) >= 8 ? 1 : 0),
-  },
-  {
-    id: 'rally_12',
-    title: 'Nice Rally',
-    desc: 'Have a rally of 12+ hits',
-    target: 1,
-    reward: 7,
-    increment: (m) => ((m.longestRally ?? 0) >= 12 ? 1 : 0),
-  },
-  {
-    id: 'rally_15',
-    title: 'Long Rally',
-    desc: 'Have a rally of 15+ hits',
-    target: 1,
-    reward: 9,
-    increment: (m) => ((m.longestRally ?? 0) >= 15 ? 1 : 0),
-  },
-
-  // ── Comeback (mild) ────────────────────────────
-  {
-    id: 'comeback_1',
-    title: 'Turnaround',
-    desc: 'Win after trailing by 1+ goal',
-    target: 1,
-    reward: 7,
-    increment: (m) => (m.hasOpponent && m.won && (m.maxDeficit ?? 0) >= 1 ? 1 : 0),
-  },
-  {
-    id: 'comeback_2',
-    title: 'Fight Back',
-    desc: 'Win after trailing by 2+ goals',
-    target: 1,
-    reward: 9,
-    increment: (m) => (m.hasOpponent && m.won && (m.maxDeficit ?? 0) >= 2 ? 1 : 0),
-  },
-
-  // ── Campaign-ish (if match knows stage) ────────
-  {
-    id: 'clear_stage_1',
-    title: 'Stage Clear',
-    desc: 'Clear any campaign stage today',
-    target: 1,
-    reward: 8,
-    increment: (m) => (m.isStage && m.won ? 1 : 0),
-  },
-  {
-    id: 'stage_star_1',
-    title: 'Star Seeker',
-    desc: 'Earn at least 1 star on a stage',
-    target: 1,
-    reward: 6,
-    increment: (m) => (m.isStage && (m.starsEarned ?? 0) >= 1 ? 1 : 0),
-  },
-  {
-    id: 'stage_star_2',
-    title: 'Double Star',
-    desc: 'Earn 2+ stars on a stage',
-    target: 1,
-    reward: 9,
-    increment: (m) => (m.isStage && (m.starsEarned ?? 0) >= 2 ? 1 : 0),
-  },
-
-  // ── Fun / filler easy ones ─────────────────────
-  {
-    id: 'finish_match',
-    title: 'Just Play',
-    desc: 'Complete any match',
-    target: 1,
-    reward: 3,
-    increment: (m) => (m.hasOpponent ? 1 : 0),
-  },
-  {
-    id: 'score_any',
-    title: 'Light the Lamp',
-    desc: 'Score a goal today',
-    target: 1,
-    reward: 4,
-    increment: (m) => (m.hasOpponent && m.playerScore > 0 ? 1 : 0),
-  },
-  {
-    id: 'win_or_score',
-    title: 'Something Good',
-    desc: 'Win a match or score 3 goals in one',
-    target: 1,
-    reward: 6,
-    increment: (m) =>
-      m.hasOpponent && (m.won || m.playerScore >= 3) ? 1 : 0,
-  },
-  {
-    id: 'no_blowout_loss',
-    title: 'Stay Close',
-    desc: 'Finish a match without losing by 4+',
-    target: 1,
-    reward: 4,
-    increment: (m) =>
-      m.hasOpponent && !(m.opponentScore - m.playerScore >= 4 && !m.won) ? 1 : 0,
-  },
-  {
-    id: 'hits_10_match',
-    title: 'Stay Active',
-    desc: 'Record 10+ hits in a single match',
-    target: 1,
-    reward: 4,
-    increment: (m) => ((m.hits ?? 0) >= 10 ? 1 : 0),
-  },
-  {
-    id: 'hits_20_match',
-    title: 'Work Rate',
-    desc: 'Record 20+ hits in a single match',
-    target: 1,
-    reward: 6,
-    increment: (m) => ((m.hits ?? 0) >= 20 ? 1 : 0),
-  },
-  {
-    id: 'goals_and_win',
-    title: 'Complete Package',
-    desc: 'Win and score at least 2 goals',
-    target: 1,
-    reward: 7,
-    increment: (m) => (m.hasOpponent && m.won && m.playerScore >= 2 ? 1 : 0),
-  },
-  {
-    id: 'play_ai',
-    title: 'Vs AI',
-    desc: 'Play a match against AI',
-    target: 1,
-    reward: 3,
-    increment: (m) => (m.opponentType === 'ai' && m.hasOpponent ? 1 : 0),
-  },
-  {
-    id: 'win_ai',
-    title: 'AI Down',
-    desc: 'Win against AI',
-    target: 1,
-    reward: 5,
-    increment: (m) => (m.opponentType === 'ai' && m.hasOpponent && m.won ? 1 : 0),
-  },
-  {
-    id: 'two_goals_two_matches',
-    title: 'Consistent',
-    desc: 'Score 2+ goals in two different matches',
-    target: 2,
-    reward: 8,
-    increment: (m) => (m.hasOpponent && m.playerScore >= 2 ? 1 : 0),
-  },
-  
-  // ── More wins ──────────────────────────────────
   {
     id: 'win_any_1b',
     title: 'Victory Lap',
@@ -1978,13 +878,12 @@ export const CHALLENGES: DailyChallengeDef[] = [
   {
     id: 'win_1_medium_clean',
     title: 'Clean Medium',
-    desc: 'Win a Medium match conceding ≤ 1',
+    desc: 'Win a Medium match conceding = 1',
     target: 1,
     reward: 9,
     increment: (m) =>
       m.opponentType === 'ai' &&
       m.difficulty === 'medium' &&
-      m.won &&
       m.opponentScore <= 1
         ? 1
         : 0,
@@ -1997,8 +896,71 @@ export const CHALLENGES: DailyChallengeDef[] = [
     reward: 8,
     increment: (m) => (m.hasOpponent && m.won ? 1 : 0),
   },
-
-  // ── More goals ─────────────────────────────────
+  {
+    id: 'win_two_modes',
+    title: 'Mode Mixer',
+    desc: 'Win 2 matches (any mode)',
+    target: 2,
+    reward: 8,
+    increment: (m) => (m.hasOpponent && m.won ? 1 : 0),
+  },
+  // -- Goals scored -------------------------------
+  {
+    id: 'score_3',
+    title: 'Open the Scoring',
+    desc: 'Score 3 goals today',
+    target: 3,
+    reward: 5,
+    increment: (m) => (m.hasOpponent ? m.playerScore : 0),
+  },
+  {
+    id: 'score_5',
+    title: 'Goal Getter',
+    desc: 'Score 5 goals today',
+    target: 5,
+    reward: 7,
+    increment: (m) => (m.hasOpponent ? m.playerScore : 0),
+  },
+  {
+    id: 'score_8',
+    title: 'In Form',
+    desc: 'Score 8 goals today',
+    target: 8,
+    reward: 9,
+    increment: (m) => (m.hasOpponent ? m.playerScore : 0),
+  },
+  {
+    id: 'score_10',
+    title: 'Goal Machine',
+    desc: 'Score 10 goals today',
+    target: 10,
+    reward: 10,
+    increment: (m) => (m.hasOpponent ? m.playerScore : 0),
+  },
+  {
+    id: 'score_1_match',
+    title: 'Get on the Board',
+    desc: 'Score at least 1 goal in a match',
+    target: 1,
+    reward: 3,
+    increment: (m) => (m.hasOpponent && m.playerScore >= 1 ? 1 : 0),
+  },
+  {
+    id: 'score_3_match',
+    title: 'Hat Trick',
+    desc: 'Score 3+ goals in a single match',
+    target: 1,
+    reward: 8,
+    increment: (m) => (m.hasOpponent && m.playerScore >= 3 ? 1 : 0),
+  },
+  {
+    id: 'score_5_match',
+    title: 'High Scorer',
+    desc: 'Score 5+ goals in a single match',
+    target: 1,
+    reward: 10,
+    increment: (m) => (m.hasOpponent && m.playerScore >= 5 ? 1 : 0),
+  },
   {
     id: 'score_4',
     title: 'Four on the Board',
@@ -2047,8 +1009,47 @@ export const CHALLENGES: DailyChallengeDef[] = [
     reward: 7,
     increment: (m) => (m.hasOpponent && m.playerScore >= 1 ? 1 : 0),
   },
-
-  // ── Defense ────────────────────────────────────
+  {
+    id: 'score_any',
+    title: 'Light the Lamp',
+    desc: 'Score a goal today',
+    target: 1,
+    reward: 4,
+    increment: (m) => (m.hasOpponent && m.playerScore > 0 ? 1 : 0),
+  },
+  {
+    id: 'goals_today_9',
+    title: 'Nine Goals',
+    desc: 'Score 9 goals today',
+    target: 9,
+    reward: 10,
+    increment: (m) => (m.hasOpponent ? m.playerScore : 0),
+  },
+  // -- Clean sheets / defense ---------------------
+  {
+    id: 'shutout_1',
+    title: 'Brick Wall',
+    desc: 'Win a match with 0 goals conceded',
+    target: 1,
+    reward: 8,
+    increment: (m) => (m.hasOpponent && m.won && m.opponentScore === 0 ? 1 : 0),
+  },
+  {
+    id: 'concede_under_2',
+    title: 'Tight Defense',
+    desc: 'Win while conceding 2 or fewer goals',
+    target: 1,
+    reward: 6,
+    increment: (m) => (m.hasOpponent && m.won && m.opponentScore <= 2 ? 1 : 0),
+  },
+  {
+    id: 'concede_under_1',
+    title: 'Almost Perfect',
+    desc: 'Win while conceding 1 or fewer goals',
+    target: 1,
+    reward: 7,
+    increment: (m) => (m.hasOpponent && m.won && m.opponentScore <= 1 ? 1 : 0),
+  },
   {
     id: 'concede_0_play',
     title: 'No Damage',
@@ -2058,29 +1059,61 @@ export const CHALLENGES: DailyChallengeDef[] = [
     increment: (m) => (m.hasOpponent && m.opponentScore === 0 ? 1 : 0),
   },
   {
-    id: 'concede_1_or_less_win',
-    title: 'Near Shutout',
-    desc: 'Win conceding 1 or fewer',
-    target: 1,
-    reward: 7,
-    increment: (m) => (m.hasOpponent && m.won && m.opponentScore <= 1 ? 1 : 0),
-  },
-  {
     id: 'defend_well_2',
     title: 'Solid Backline',
-    desc: 'Win 2 matches conceding ≤ 2 each',
+    desc: 'Win 2 matches conceding = 2 each',
     target: 2,
     reward: 10,
     increment: (m) => (m.hasOpponent && m.won && m.opponentScore <= 2 ? 1 : 0),
   },
-
-  // ── Hits ───────────────────────────────────────
+  // -- Play volume --------------------------------
+  {
+    id: 'play_1',
+    title: 'Show Up',
+    desc: 'Finish 1 match today',
+    target: 1,
+    reward: 3,
+    increment: (m) => (m.hasOpponent ? 1 : 0),
+  },
+  {
+    id: 'play_2',
+    title: 'Double Session',
+    desc: 'Finish 2 matches today',
+    target: 2,
+    reward: 5,
+    increment: (m) => (m.hasOpponent ? 1 : 0),
+  },
+  {
+    id: 'play_3',
+    title: 'Triple Session',
+    desc: 'Finish 3 matches today',
+    target: 3,
+    reward: 8,
+    increment: (m) => (m.hasOpponent ? 1 : 0),
+  },
+  {
+    id: 'play_4',
+    title: 'Keep Playing',
+    desc: 'Finish 4 matches today',
+    target: 4,
+    reward: 10,
+    increment: (m) => (m.hasOpponent ? 1 : 0),
+  },
+  // -- Hits ---------------------------------------
   {
     id: 'hits_15',
     title: 'Touch the Puck',
     desc: 'Hit the puck 15 times today',
     target: 15,
     reward: 3,
+    increment: (m) => m.hits ?? 0,
+  },
+  {
+    id: 'hits_20',
+    title: 'Warm Hands',
+    desc: 'Hit the puck 20 times today',
+    target: 20,
+    reward: 4,
     increment: (m) => m.hits ?? 0,
   },
   {
@@ -2092,11 +1125,27 @@ export const CHALLENGES: DailyChallengeDef[] = [
     increment: (m) => m.hits ?? 0,
   },
   {
+    id: 'hits_40',
+    title: 'Active Stick',
+    desc: 'Hit the puck 40 times today',
+    target: 40,
+    reward: 6,
+    increment: (m) => m.hits ?? 0,
+  },
+  {
     id: 'hits_50',
     title: 'Contact King',
     desc: 'Hit the puck 50 times today',
     target: 50,
     reward: 7,
+    increment: (m) => m.hits ?? 0,
+  },
+  {
+    id: 'hits_60',
+    title: 'Busy Day',
+    desc: 'Hit the puck 60 times today',
+    target: 60,
+    reward: 8,
     increment: (m) => m.hits ?? 0,
   },
   {
@@ -2108,12 +1157,36 @@ export const CHALLENGES: DailyChallengeDef[] = [
     increment: (m) => m.hits ?? 0,
   },
   {
+    id: 'hits_80',
+    title: 'Slap Festival',
+    desc: 'Hit the puck 80 times today',
+    target: 80,
+    reward: 10,
+    increment: (m) => m.hits ?? 0,
+  },
+  {
+    id: 'hits_10_match',
+    title: 'Stay Active',
+    desc: 'Record 10+ hits in a single match',
+    target: 1,
+    reward: 4,
+    increment: (m) => ((m.hits ?? 0) >= 10 ? 1 : 0),
+  },
+  {
     id: 'hits_15_match',
     title: 'Busy Match',
     desc: 'Get 15+ hits in one match',
     target: 1,
     reward: 5,
     increment: (m) => ((m.hits ?? 0) >= 15 ? 1 : 0),
+  },
+  {
+    id: 'hits_20_match',
+    title: 'Work Rate',
+    desc: 'Record 20+ hits in a single match',
+    target: 1,
+    reward: 6,
+    increment: (m) => ((m.hits ?? 0) >= 20 ? 1 : 0),
   },
   {
     id: 'hits_25_match',
@@ -2123,14 +1196,45 @@ export const CHALLENGES: DailyChallengeDef[] = [
     reward: 7,
     increment: (m) => ((m.hits ?? 0) >= 25 ? 1 : 0),
   },
-
-  // ── Power-ups ──────────────────────────────────
+  // -- Power-ups ----------------------------------
+  {
+    id: 'powerups_1',
+    title: 'Power Nibble',
+    desc: 'Collect 1 power-up today',
+    target: 1,
+    reward: 4,
+    increment: (m) => m.powerupsCollected ?? 0,
+  },
+  {
+    id: 'powerups_2',
+    title: 'Power Snack',
+    desc: 'Collect 2 power-ups today',
+    target: 2,
+    reward: 6,
+    increment: (m) => m.powerupsCollected ?? 0,
+  },
+  {
+    id: 'powerups_3',
+    title: 'Power Bite',
+    desc: 'Collect 3 power-ups today',
+    target: 3,
+    reward: 8,
+    increment: (m) => m.powerupsCollected ?? 0,
+  },
   {
     id: 'powerups_4',
     title: 'Power Grab',
     desc: 'Collect 4 power-ups today',
     target: 4,
     reward: 9,
+    increment: (m) => m.powerupsCollected ?? 0,
+  },
+  {
+    id: 'powerups_5',
+    title: 'Power Collector',
+    desc: 'Collect 5 power-ups today',
+    target: 5,
+    reward: 10,
     increment: (m) => m.powerupsCollected ?? 0,
   },
   {
@@ -2149,60 +1253,34 @@ export const CHALLENGES: DailyChallengeDef[] = [
     reward: 8,
     increment: (m) => ((m.powerupsCollected ?? 0) >= 2 ? 1 : 0),
   },
-
-  // ── Speed ──────────────────────────────────────
+  // -- Margins & style ----------------------------
   {
-    id: 'speed_700',
-    title: 'Quick Touch',
-    desc: 'Hit 700+ puck speed',
+    id: 'win_by_1',
+    title: 'Narrow Escape',
+    desc: 'Win a match by exactly 1 goal',
     target: 1,
-    reward: 4,
-    increment: (m) => ((m.maxPuckSpeed ?? 0) >= 700 ? 1 : 0),
+    reward: 7,
+    increment: (m) =>
+      m.hasOpponent && m.won && m.playerScore - m.opponentScore === 1 ? 1 : 0,
   },
   {
-    id: 'speed_900',
-    title: 'Snappy Shot',
-    desc: 'Hit 900+ puck speed',
-    target: 1,
-    reward: 6,
-    increment: (m) => ((m.maxPuckSpeed ?? 0) >= 900 ? 1 : 0),
-  },
-  {
-    id: 'speed_1100',
-    title: 'Laser',
-    desc: 'Hit 1100+ puck speed',
-    target: 1,
-    reward: 8,
-    increment: (m) => ((m.maxPuckSpeed ?? 0) >= 1100 ? 1 : 0),
-  },
-
-  // ── Rallies ────────────────────────────────────
-  {
-    id: 'rally_6',
-    title: 'Mini Rally',
-    desc: 'Rally of 6+ hits',
-    target: 1,
-    reward: 4,
-    increment: (m) => ((m.longestRally ?? 0) >= 6 ? 1 : 0),
-  },
-  {
-    id: 'rally_10',
-    title: 'Ten Touch',
-    desc: 'Rally of 10+ hits',
+    id: 'win_by_2',
+    title: 'Comfortable Win',
+    desc: 'Win a match by 2+ goals',
     target: 1,
     reward: 6,
-    increment: (m) => ((m.longestRally ?? 0) >= 10 ? 1 : 0),
+    increment: (m) =>
+      m.hasOpponent && m.won && m.playerScore - m.opponentScore >= 2 ? 1 : 0,
   },
   {
-    id: 'rally_14',
-    title: 'Extended Rally',
-    desc: 'Rally of 14+ hits',
+    id: 'win_by_3',
+    title: 'Clear Winner',
+    desc: 'Win a match by 3+ goals',
     target: 1,
     reward: 8,
-    increment: (m) => ((m.longestRally ?? 0) >= 14 ? 1 : 0),
+    increment: (m) =>
+      m.hasOpponent && m.won && m.playerScore - m.opponentScore >= 3 ? 1 : 0,
   },
-
-  // ── Margins ────────────────────────────────────
   {
     id: 'win_by_4',
     title: 'Big Margin',
@@ -2224,8 +1302,91 @@ export const CHALLENGES: DailyChallengeDef[] = [
       return d === 1 || d === 2 ? 1 : 0;
     },
   },
-
-  // ── AI personalities ────────────────────────────
+  {
+    id: 'score_first',
+    title: 'First Strike',
+    desc: 'Score the first goal in a match',
+    target: 1,
+    reward: 5,
+    increment: (m) => (m.scoredFirst ? 1 : 0),
+  },
+  // -- Speed (mild) -------------------------------
+  {
+    id: 'speed_700',
+    title: 'Quick Touch',
+    desc: 'Hit 700+ puck speed',
+    target: 1,
+    reward: 4,
+    increment: (m) => ((m.maxPuckSpeed ?? 0) >= 700 ? 1 : 0),
+  },
+  {
+    id: 'speed_800',
+    title: 'Zip It',
+    desc: 'Hit a puck at 800+ speed',
+    target: 1,
+    reward: 5,
+    increment: (m) => ((m.maxPuckSpeed ?? 0) >= 800 ? 1 : 0),
+  },
+  {
+    id: 'speed_900',
+    title: 'Snappy Shot',
+    desc: 'Hit 900+ puck speed',
+    target: 1,
+    reward: 6,
+    increment: (m) => ((m.maxPuckSpeed ?? 0) >= 900 ? 1 : 0),
+  },
+  {
+    id: 'speed_1000',
+    title: 'Fast Shot',
+    desc: 'Hit a puck at 1000+ speed',
+    target: 1,
+    reward: 7,
+    increment: (m) => ((m.maxPuckSpeed ?? 0) >= 1000 ? 1 : 0),
+  },
+  {
+    id: 'speed_1100',
+    title: 'Laser',
+    desc: 'Hit 1100+ puck speed',
+    target: 1,
+    reward: 8,
+    increment: (m) => ((m.maxPuckSpeed ?? 0) >= 1100 ? 1 : 0),
+  },
+  {
+    id: 'speed_1200',
+    title: 'Rocket',
+    desc: 'Hit a puck at 1200+ speed',
+    target: 1,
+    reward: 10,
+    increment: (m) => ((m.maxPuckSpeed ?? 0) >= 1200 ? 1 : 0),
+  },
+  // -- Personality / AI flavor --------------------
+  {
+    id: 'beat_attacker_1',
+    title: 'Stop the Attack',
+    desc: 'Beat an Attacker AI once',
+    target: 1,
+    reward: 7,
+    increment: (m) =>
+      m.opponentType === 'ai' && m.hasOpponent && m.personality === 'attacker' && m.won ? 1 : 0,
+  },
+  {
+    id: 'beat_defender_1',
+    title: 'Crack the Wall',
+    desc: 'Beat a Defender AI once',
+    target: 1,
+    reward: 7,
+    increment: (m) =>
+      m.opponentType === 'ai' && m.hasOpponent && m.personality === 'defender' && m.won ? 1 : 0,
+  },
+  {
+    id: 'beat_balanced_1',
+    title: 'All-Rounder',
+    desc: 'Beat a Balanced AI once',
+    target: 1,
+    reward: 6,
+    increment: (m) =>
+      m.opponentType === 'ai' && m.hasOpponent && m.personality === 'balanced' && m.won ? 1 : 0,
+  },
   {
     id: 'beat_attacker_2',
     title: 'Attack Denied',
@@ -2252,8 +1413,32 @@ export const CHALLENGES: DailyChallengeDef[] = [
     reward: 8,
     increment: (m) => (m.opponentType === 'ai' && m.won ? 1 : 0),
   },
-
-  // ── Match modes ────────────────────────────────
+  // -- Match modes --------------------------------
+  {
+    id: 'win_sudden_1',
+    title: 'Sudden Win',
+    desc: 'Win a sudden-death match',
+    target: 1,
+    reward: 8,
+    increment: (m) => (m.winCondition === 'sudden_death' && m.won ? 1 : 0),
+  },
+  {
+    id: 'win_timed_1',
+    title: 'Beat the Clock',
+    desc: 'Win a timed match',
+    target: 1,
+    reward: 7,
+    increment: (m) => (m.winCondition === 'timed' && m.won ? 1 : 0),
+  },
+  {
+    id: 'win_first_to_1',
+    title: 'Race to Win',
+    desc: 'Win a first-to-X match',
+    target: 1,
+    reward: 5,
+    increment: (m) =>
+      m.winCondition !== 'sudden_death' && m.winCondition !== 'timed' && m.won ? 1 : 0,
+  },
   {
     id: 'play_timed_1',
     title: 'Time Trial',
@@ -2279,8 +1464,114 @@ export const CHALLENGES: DailyChallengeDef[] = [
     increment: (m) =>
       m.winCondition === 'timed' && m.won && m.playerScore >= 2 ? 1 : 0,
   },
-
-  // ── Stages ─────────────────────────────────────
+  // -- Simple combos ------------------------------
+  {
+    id: 'win_and_score_3',
+    title: 'Solid Match',
+    desc: 'Win a match and score 3+ goals',
+    target: 1,
+    reward: 8,
+    increment: (m) => (m.hasOpponent && m.won && m.playerScore >= 3 ? 1 : 0),
+  },
+  {
+    id: 'win_no_concede_2',
+    title: 'Steady Defense',
+    desc: 'Win while conceding at most 2',
+    target: 1,
+    reward: 6,
+    increment: (m) => (m.hasOpponent && m.won && m.opponentScore <= 2 ? 1 : 0),
+  },
+  {
+    id: 'two_wins_same_day',
+    title: 'Back to Back',
+    desc: 'Win 2 matches today',
+    target: 2,
+    reward: 8,
+    increment: (m) => (m.hasOpponent && m.won ? 1 : 0),
+  },
+  {
+    id: 'two_goals_two_matches',
+    title: 'Consistent',
+    desc: 'Score 2+ goals in two different matches',
+    target: 2,
+    reward: 8,
+    increment: (m) => (m.hasOpponent && m.playerScore >= 2 ? 1 : 0),
+  },
+  // -- Rally / activity ---------------------------
+  {
+    id: 'rally_6',
+    title: 'Mini Rally',
+    desc: 'Rally of 6+ hits',
+    target: 1,
+    reward: 4,
+    increment: (m) => ((m.longestRally ?? 0) >= 6 ? 1 : 0),
+  },
+  {
+    id: 'rally_8',
+    title: 'Short Rally',
+    desc: 'Have a rally of 8+ hits',
+    target: 1,
+    reward: 5,
+    increment: (m) => ((m.longestRally ?? 0) >= 8 ? 1 : 0),
+  },
+  {
+    id: 'rally_10',
+    title: 'Ten Touch',
+    desc: 'Rally of 10+ hits',
+    target: 1,
+    reward: 6,
+    increment: (m) => ((m.longestRally ??  0) >= 10 ? 1 : 0),
+  },
+  {
+    id: 'rally_12',
+    title: 'Nice Rally',
+    desc: 'Have a rally of 12+ hits',
+    target: 1,
+    reward: 7,
+    increment: (m) => ((m.longestRally ?? 0) >= 12 ? 1 : 0),
+  },
+  {
+    id: 'rally_14',
+    title: 'Extended Rally',
+    desc: 'Rally of 14+ hits',
+    target: 1,
+    reward: 8,
+    increment: (m) => ((m.longestRally ?? 0) >= 14 ? 1 : 0),
+  },
+  {
+    id: 'rally_15',
+    title: 'Long Rally',
+    desc: 'Have a rally of 15+ hits',
+    target: 1,
+    reward: 9,
+    increment: (m) => ((m.longestRally ?? 0) >= 15 ? 1 : 0),
+  },
+  // -- Comeback (mild) ----------------------------
+  {
+    id: 'comeback_1',
+    title: 'Turnaround',
+    desc: 'Win after trailing by 1+ goal',
+    target: 1,
+    reward: 7,
+    increment: (m) => (m.hasOpponent && m.won && (m.maxDeficit ?? 0) >= 1 ? 1 : 0),
+  },
+  {
+    id: 'comeback_2',
+    title: 'Fight Back',
+    desc: 'Win after trailing by 2+ goals',
+    target: 1,
+    reward: 9,
+    increment: (m) => (m.hasOpponent && m.won && (m.maxDeficit ?? 0) >= 2 ? 1 : 0),
+  },
+  {
+    id: 'comeback_from_1',
+    title: 'Equalizer Path',
+    desc: 'Win after trailing',
+    target: 1,
+    reward: 8,
+    increment: (m) => (m.hasOpponent && m.won && (m.maxDeficit ?? 0) >= 1 ? 1 : 0),
+  },
+  // -- Stages -------------------------------------
   {
     id: 'stage_play_1',
     title: 'Campaign Touch',
@@ -2313,25 +1604,56 @@ export const CHALLENGES: DailyChallengeDef[] = [
     reward: 10,
     increment: (m) => (m.isStage && (m.starsEarned ?? 0) >= 3 ? 1 : 0),
   },
-
-  // ── Comebacks ──────────────────────────────────
   {
-    id: 'comeback_from_1',
-    title: 'Equalizer Path',
-    desc: 'Win after trailing',
+    id: 'clear_stage_1',
+    title: 'Stage Clear',
+    desc: 'Clear any campaign stage today',
     target: 1,
     reward: 8,
-    increment: (m) => (m.hasOpponent && m.won && (m.maxDeficit ?? 0) >= 1 ? 1 : 0),
+    increment: (m) => (m.isStage && m.won ? 1 : 0),
   },
-
-  // ── Simple daily habits ────────────────────────
   {
-    id: 'play_2_score_1',
-    title: 'Play & Score',
-    desc: 'Play 2 matches and score in both',
-    target: 2,
-    reward: 8,
-    increment: (m) => (m.hasOpponent && m.playerScore >= 1 ? 1 : 0),
+    id: 'stage_star_1',
+    title: 'Star Seeker',
+    desc: 'Earn at least 1 star on a stage',
+    target: 1,
+    reward: 6,
+    increment: (m) => (m.isStage && (m.starsEarned ?? 0) >= 1 ? 1 : 0),
+  },
+  {
+    id: 'stage_star_2',
+    title: 'Double Star',
+    desc: 'Earn 2+ stars on a stage',
+    target: 1,
+    reward: 9,
+    increment: (m) => (m.isStage && (m.starsEarned ?? 0) >= 2 ? 1 : 0),
+  },
+  // -- Simple daily habits ------------------------
+  {
+    id: 'finish_match',
+    title: 'Just Play',
+    desc: 'Complete any match',
+    target: 1,
+    reward: 3,
+    increment: (m) => (m.hasOpponent ? 1 : 0),
+  },
+  {
+    id: 'win_or_score',
+    title: 'Something Good',
+    desc: 'Win a match or score 3 goals in one',
+    target: 1,
+    reward: 6,
+    increment: (m) =>
+      m.hasOpponent && (m.won || m.playerScore >= 3) ? 1 : 0,
+  },
+  {
+    id: 'no_blowout_loss',
+    title: 'Stay Close',
+    desc: 'Finish a match without losing by 4+',
+    target: 1,
+    reward: 4,
+    increment: (m) =>
+      m.hasOpponent && !(m.opponentScore - m.playerScore >= 4 && !m.won) ? 1 : 0,
   },
   {
     id: 'finish_strong',
@@ -2350,36 +1672,20 @@ export const CHALLENGES: DailyChallengeDef[] = [
     increment: (m) => (m.hasOpponent && m.playerScore >= 1 ? 1 : 0),
   },
   {
-    id: 'win_with_hits_20',
-    title: 'Active Winner',
-    desc: 'Win a match with 20+ hits',
+    id: 'play_ai',
+    title: 'Vs AI',
+    desc: 'Play a match against AI',
     target: 1,
-    reward: 7,
-    increment: (m) => (m.hasOpponent && m.won && (m.hits ?? 0) >= 20 ? 1 : 0),
+    reward: 3,
+    increment: (m) => (m.opponentType === 'ai' && m.hasOpponent ? 1 : 0),
   },
   {
-    id: 'score_first_win',
-    title: 'Lead and Finish',
-    desc: 'Score first and win the match',
+    id: 'win_ai',
+    title: 'AI Down',
+    desc: 'Win against AI',
     target: 1,
-    reward: 8,
-    increment: (m) => (m.hasOpponent && m.won && m.scoredFirst ? 1 : 0),
-  },
-  {
-    id: 'double_duty',
-    title: 'Double Duty',
-    desc: 'Play 2 matches and win at least 1',
-    target: 2,
-    reward: 6,
-    increment: (m) => (m.hasOpponent ? 1 : 0),
-  },
-  {
-    id: 'goals_today_9',
-    title: 'Nine Goals',
-    desc: 'Score 9 goals today',
-    target: 9,
-    reward: 10,
-    increment: (m) => (m.hasOpponent ? m.playerScore : 0),
+    reward: 5,
+    increment: (m) => (m.opponentType === 'ai' && m.hasOpponent && m.won ? 1 : 0),
   },
   {
     id: 'easy_shutout',
@@ -2409,11 +1715,36 @@ export const CHALLENGES: DailyChallengeDef[] = [
         : 0,
   },
   {
-    id: 'win_two_modes',
-    title: 'Mode Mixer',
-    desc: 'Win 2 matches (any mode)',
+    id: 'play_2_score_1',
+    title: 'Play & Score',
+    desc: 'Play 2 matches and score in both',
     target: 2,
     reward: 8,
-    increment: (m) => (m.hasOpponent && m.won ? 1 : 0),
+    increment: (m) => (m.hasOpponent && m.playerScore >= 1 ? 1 : 0),
+  },
+  {
+    id: 'score_first_win',
+    title: 'Lead and Finish',
+    desc: 'Score first and win the match',
+    target: 1,
+    reward: 8,
+    increment: (m) => (m.hasOpponent && m.won && m.scoredFirst ? 1 : 0),
+  },
+  {
+    id: 'win_with_hits_20',
+    title: 'Active Winner',
+    desc: 'Win a match with 20+ hits',
+    target: 1,
+    reward: 7,
+    increment: (m) => (m.hasOpponent && m.won && (m.hits ?? 0) >= 20 ? 1 : 0),
+  },
+  {
+    id: 'double_duty',
+    title: 'Double Duty',
+    desc: 'Play 2 matches and win at least 1',
+    target: 2,
+    reward: 6,
+    increment: (m) => (m.hasOpponent ? 1 : 0),
   },
 ];
+

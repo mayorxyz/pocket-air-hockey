@@ -349,9 +349,7 @@ export class AirHockeyEngine {
 
   private getActivePuckSkin() {
     if (this.tutorialStep > 0) return getPuckSkin('classic');
-    return getPuckSkin(
-      this.activeStage ? this.activeStage.skinOverride.puck : this.settings.puckSkin
-    );
+    return getPuckSkin(this.settings.puckSkin);
   }
 
   private getActiveMalletSkin(isMe: boolean) {
@@ -1211,6 +1209,10 @@ export class AirHockeyEngine {
       maxPuckSpeed: this.maxPuckSpeed,
       maxDeficit: this.maxDeficit,
       powerupsCollected: this.powerupsCollected,
+      winCondition: ((this.activeStage
+        ? this.activeStage.winCondition
+        : modeCfg.winCondition) as MatchResult['winCondition']),
+      isStage: !!this.activeStage,
       ...(this.activeStage
         ? { stageId: this.activeStage.id, continuesUsed: this.continuesUsed }
         : {}),

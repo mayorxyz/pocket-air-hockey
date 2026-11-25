@@ -102,6 +102,13 @@ export interface PlayerStats {
   bestStreak: number;
   powerupsCollected: number;
   playtime: number;
+  shutouts?: number;
+  totalCoinsEarned?: number;
+  coins?: number;
+  unlockedTables?: string[];
+  unlockedPucks?: string[];
+  unlockedMallets?: string[];
+  stages?: Record<number, { stars: number }>;
 }
 
 export interface MatchHistoryItem {
@@ -221,6 +228,15 @@ export interface MatchResult {
   powerupsCollected: number;
   stageId?: number;
   continuesUsed?: number;
+  winCondition?: 'score' | 'timed' | 'sudden_death';
+  isStage?: boolean;
+  isBoss?: boolean;
+  starsEarned?: number;
+  scoredFirst?: boolean;
+  concededFirst?: boolean;
+  doublePuckActive?: boolean;
+  powerupsThisMatch?: number;
+  durationSec?: number;
 }
 
 export interface CoinBreakdown {

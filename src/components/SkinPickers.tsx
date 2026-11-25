@@ -77,6 +77,53 @@ const TablePreview: React.FC<{ skin: TableSkin }> = ({ skin }) => {
         <g clipPath={`url(#${clipId})`}>
           <rect x={0} y={0} width={PREVIEW_W} height={PREVIEW_H} fill={skin.surface} />
 
+          {skin.pattern === 'football_pitch' && (
+            <g fill="none" stroke={skin.lines} strokeWidth={8}>
+              <rect x={20} y={20} width={360} height={520} />
+              <circle cx={200} cy={280} r={66} />
+              <rect x={100} y={20} width={200} height={72} />
+              <rect x={132} y={20} width={136} height={38} />
+              <rect x={100} y={468} width={200} height={72} />
+              <rect x={132} y={502} width={136} height={38} />
+            </g>
+          )}
+          {skin.pattern === 'basketball_court' && (
+            <g fill="none" stroke={skin.lines} strokeWidth={8}>
+              <rect x={20} y={20} width={360} height={520} />
+              <rect x={110} y={20} width={180} height={105} />
+              <rect x={110} y={435} width={180} height={105} />
+              <path d="M 110 125 A 90 90 0 0 0 290 125 M 110 435 A 90 90 0 0 1 290 435" />
+            </g>
+          )}
+          {skin.pattern === 'table_tennis' && (
+            <g fill="none" stroke={skin.lines} strokeWidth={8}>
+              <rect x={20} y={20} width={360} height={520} />
+              <path d="M 200 20 V 540" strokeWidth={10} />
+            </g>
+          )}
+          {skin.pattern === 'volleyball_court' && (
+            <g fill="none" stroke={skin.lines} strokeWidth={8}>
+              <rect x={40} y={38} width={320} height={484} />
+              <path d="M 40 198 H 360 M 40 362 H 360" />
+            </g>
+          )}
+          {skin.pattern === 'tennis_clay' && (
+            <g fill="none" stroke={skin.lines} strokeWidth={8}>
+              <rect x={20} y={20} width={360} height={520} />
+              <path d="M 80 20 V 540 M 320 20 V 540 M 80 150 H 320 M 80 410 H 320 M 200 150 V 410" />
+            </g>
+          )}
+          {skin.pattern === 'ice_rink' && (
+            <g fill="none" stroke={skin.lines} strokeWidth={8}>
+              <path d="M 0 185 H 400 M 0 375 H 400" stroke="#d32f2f" />
+              <circle cx={200} cy={280} r={66} />
+              <circle cx={100} cy={100} r={52} />
+              <circle cx={300} cy={100} r={52} />
+              <circle cx={100} cy={460} r={52} />
+              <circle cx={300} cy={460} r={52} />
+            </g>
+          )}
+
           {skin.pattern === 'neon_grid' && (
             <g stroke={skin.dots} strokeWidth={5} opacity={0.8}>
               <line x1={100} y1={0} x2={100} y2={PREVIEW_H} />

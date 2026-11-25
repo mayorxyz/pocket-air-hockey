@@ -37,6 +37,14 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
 }) => {
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [burst, setBurst] = useState<number | null>(null);
+  const [achPage, setAchPage] = useState(1);
+
+  const ACH_PER_PAGE = 12;
+  const paginatedAchievements = useMemo(
+    () => ACHIEVEMENTS.slice(0, achPage * ACH_PER_PAGE),
+    [achPage]
+  );
+  const hasMore = achPage * ACH_PER_PAGE < ACHIEVEMENTS.length;
 
   useEffect(() => {
     const id = window.setInterval(() => setNowMs(Date.now()), 30000);
@@ -257,7 +265,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          {ACHIEVEMENTS.map((ach) => {
+          {paginatedAchievements.map((ach) => {
             const isUnlocked = Boolean(unlocked[ach.id]);
             const current = ach.progress ? ach.progress(stats) : isUnlocked ? 1 : 0;
             const target = ach.target ?? 1;
@@ -320,6 +328,15 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
               </div>
             );
           })}
+          {hasMore && (
+            <button
+              type="button"
+              onClick={() => setAchPage((p) => p + 1)}
+              className="w-full py-2.5 rounded-xl border border-white/20 bg-white/5 text-white font-bold text-sm hover:bg-white/10 active:bg-white/10 transition-colors"
+            >
+              Load more ({ACHIEVEMENTS.length - paginatedAchievements.length} remaining)
+            </button>
+          )}
         </div>
       </div>
     </div>

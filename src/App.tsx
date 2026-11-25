@@ -25,9 +25,9 @@ import {
   MAX_CONTINUES_PER_MATCH,
   purchaseAndEquipSkin,
 } from './game/progression';
-import { ACHIEVEMENTS, getStageById, MODES, PERSONALITIES } from './game/registries';
+import { ACHIEVEMENTS, getStageById, MODES, PERSONALITIES, STAGES } from './game/registries';
 import { shareResultCard, ShareCardPayload } from './game/shareCard';
-import { SkinCategory } from './game/skins';
+import { SKINS, SkinCategory } from './game/skins';
 import { createDefaultSave, EMPTY_STATS, saveStore } from './game/storage';
 import {
   Difficulty,
@@ -593,6 +593,37 @@ export default function App() {
     });
   }, []);
 
+  const handleDevUnlockAll = useCallback(() => {
+    setSave((prev) => {
+      const stages = { ...prev.stages };
+      for (const stage of STAGES) {
+        stages[stage.id] = { ...stages[stage.id], unlocked: true, stars: 3 };
+      }
+
+      const unlockedAt = new Date().toISOString();
+      const achievements = { ...prev.achievements };
+      for (const achievement of ACHIEVEMENTS) {
+        achievements[achievement.id] = unlockedAt;
+      }
+
+      const nextSave: SaveDataV3 = {
+        ...prev,
+        coins: Math.max(prev.coins, 100_000),
+        unlocks: {
+          table: Object.keys(SKINS.table),
+          puck: Object.keys(SKINS.puck),
+          mallet: Object.keys(SKINS.mallet),
+        },
+        achievements,
+        stages,
+        grandChampionBadge: true,
+        legend100Badge: true,
+      };
+      saveStore.set(nextSave, true);
+      return nextSave;
+    });
+  }, []);
+
   const handleResetSettings = useCallback(() => {
     const defaults = createDefaultSave().settings;
     setSave((prev) => {
@@ -1086,6 +1117,7 @@ export default function App() {
           onSelectOrBuySkin={handleSelectOrBuySkin}
           onResetStats={handleResetStats}
           onResetSettings={handleResetSettings}
+          onDevUnlockAll={handleDevUnlockAll}
           onOpenHowTo={() => pushScreen('howto')}
           onBack={goBack}
         />
