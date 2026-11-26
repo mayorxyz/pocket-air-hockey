@@ -802,7 +802,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Double Up',
     desc: 'Win 2 matches today',
     target: 2,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won ? 1 : 0),
   },
   {
@@ -810,7 +810,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Hat Trick Wins',
     desc: 'Win 3 matches today',
     target: 3,
-    reward: 10,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won ? 1 : 0),
   },
   {
@@ -818,7 +818,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Easy Does It',
     desc: 'Win 1 match on Easy',
     target: 1,
-    reward: 4,
+    reward: 5,
     increment: (m) =>
       m.opponentType === 'ai' && m.hasOpponent && m.difficulty === 'easy' && m.won ? 1 : 0,
   },
@@ -827,7 +827,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Easy Streak',
     desc: 'Win 2 matches on Easy',
     target: 2,
-    reward: 7,
+    reward: 5,
     increment: (m) =>
       m.opponentType === 'ai' && m.hasOpponent && m.difficulty === 'easy' && m.won ? 1 : 0,
   },
@@ -836,7 +836,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Medium Warm-Up',
     desc: 'Win 1 match on Medium',
     target: 1,
-    reward: 6,
+    reward: 5,
     increment: (m) =>
       m.opponentType === 'ai' && m.hasOpponent && m.difficulty === 'medium' && m.won ? 1 : 0,
   },
@@ -845,7 +845,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Medium Rider',
     desc: 'Win 2 matches on Medium',
     target: 2,
-    reward: 9,
+    reward: 5,
     increment: (m) =>
       m.opponentType === 'ai' && m.hasOpponent && m.difficulty === 'medium' && m.won ? 1 : 0,
   },
@@ -854,7 +854,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Hard Starter',
     desc: 'Win 1 match on Hard',
     target: 1,
-    reward: 10,
+    reward: 5,
     increment: (m) =>
       m.opponentType === 'ai' && m.hasOpponent && m.difficulty === 'hard' && m.won ? 1 : 0,
   },
@@ -871,7 +871,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Easy Pair',
     desc: 'Win 2 Easy matches',
     target: 2,
-    reward: 7,
+    reward: 5,
     increment: (m) =>
       m.opponentType === 'ai' && m.difficulty === 'easy' && m.won ? 1 : 0,
   },
@@ -880,7 +880,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Clean Medium',
     desc: 'Win a Medium match conceding = 1',
     target: 1,
-    reward: 9,
+    reward: 5,
     increment: (m) =>
       m.opponentType === 'ai' &&
       m.difficulty === 'medium' &&
@@ -893,7 +893,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Two in a Row',
     desc: 'Win 2 matches today',
     target: 2,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won ? 1 : 0),
   },
   {
@@ -901,7 +901,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Mode Mixer',
     desc: 'Win 2 matches (any mode)',
     target: 2,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won ? 1 : 0),
   },
   // -- Goals scored -------------------------------
@@ -918,7 +918,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Goal Getter',
     desc: 'Score 5 goals today',
     target: 5,
-    reward: 7,
+    reward: 5,
     increment: (m) => (m.hasOpponent ? m.playerScore : 0),
   },
   {
@@ -926,7 +926,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'In Form',
     desc: 'Score 8 goals today',
     target: 8,
-    reward: 9,
+    reward: 5,
     increment: (m) => (m.hasOpponent ? m.playerScore : 0),
   },
   {
@@ -934,7 +934,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Goal Machine',
     desc: 'Score 10 goals today',
     target: 10,
-    reward: 10,
+    reward: 5,
     increment: (m) => (m.hasOpponent ? m.playerScore : 0),
   },
   {
@@ -942,7 +942,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Get on the Board',
     desc: 'Score at least 1 goal in a match',
     target: 1,
-    reward: 3,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.playerScore >= 1 ? 1 : 0),
   },
   {
@@ -950,7 +950,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Hat Trick',
     desc: 'Score 3+ goals in a single match',
     target: 1,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.playerScore >= 3 ? 1 : 0),
   },
   {
@@ -958,7 +958,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'High Scorer',
     desc: 'Score 5+ goals in a single match',
     target: 1,
-    reward: 10,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.playerScore >= 5 ? 1 : 0),
   },
   {
@@ -966,7 +966,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Four on the Board',
     desc: 'Score 4 goals today',
     target: 4,
-    reward: 6,
+    reward: 5,
     increment: (m) => (m.hasOpponent ? m.playerScore : 0),
   },
   {
@@ -974,7 +974,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Half Dozen',
     desc: 'Score 6 goals today',
     target: 6,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.hasOpponent ? m.playerScore : 0),
   },
   {
@@ -982,7 +982,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Lucky Seven',
     desc: 'Score 7 goals today',
     target: 7,
-    reward: 9,
+    reward: 5,
     increment: (m) => (m.hasOpponent ? m.playerScore : 0),
   },
   {
@@ -998,7 +998,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Poker',
     desc: 'Score 4+ goals in one match',
     target: 1,
-    reward: 9,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.playerScore >= 4 ? 1 : 0),
   },
   {
@@ -1006,7 +1006,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Multi-Match Scorer',
     desc: 'Score at least 1 goal in 2 matches',
     target: 2,
-    reward: 7,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.playerScore >= 1 ? 1 : 0),
   },
   {
@@ -1014,7 +1014,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Light the Lamp',
     desc: 'Score a goal today',
     target: 1,
-    reward: 4,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.playerScore > 0 ? 1 : 0),
   },
   {
@@ -1022,7 +1022,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Nine Goals',
     desc: 'Score 9 goals today',
     target: 9,
-    reward: 10,
+    reward: 5,
     increment: (m) => (m.hasOpponent ? m.playerScore : 0),
   },
   // -- Clean sheets / defense ---------------------
@@ -1031,7 +1031,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Brick Wall',
     desc: 'Win a match with 0 goals conceded',
     target: 1,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won && m.opponentScore === 0 ? 1 : 0),
   },
   {
@@ -1039,7 +1039,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Tight Defense',
     desc: 'Win while conceding 2 or fewer goals',
     target: 1,
-    reward: 6,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won && m.opponentScore <= 2 ? 1 : 0),
   },
   {
@@ -1047,7 +1047,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Almost Perfect',
     desc: 'Win while conceding 1 or fewer goals',
     target: 1,
-    reward: 7,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won && m.opponentScore <= 1 ? 1 : 0),
   },
   {
@@ -1055,7 +1055,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'No Damage',
     desc: 'Finish a match without conceding',
     target: 1,
-    reward: 7,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.opponentScore === 0 ? 1 : 0),
   },
   {
@@ -1063,7 +1063,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Solid Backline',
     desc: 'Win 2 matches conceding = 2 each',
     target: 2,
-    reward: 10,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won && m.opponentScore <= 2 ? 1 : 0),
   },
   // -- Play volume --------------------------------
@@ -1072,7 +1072,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Show Up',
     desc: 'Finish 1 match today',
     target: 1,
-    reward: 3,
+    reward: 5,
     increment: (m) => (m.hasOpponent ? 1 : 0),
   },
   {
@@ -1088,7 +1088,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Triple Session',
     desc: 'Finish 3 matches today',
     target: 3,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.hasOpponent ? 1 : 0),
   },
   {
@@ -1096,7 +1096,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Keep Playing',
     desc: 'Finish 4 matches today',
     target: 4,
-    reward: 10,
+    reward: 5,
     increment: (m) => (m.hasOpponent ? 1 : 0),
   },
   // -- Hits ---------------------------------------
@@ -1105,7 +1105,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Touch the Puck',
     desc: 'Hit the puck 15 times today',
     target: 15,
-    reward: 3,
+    reward: 5,
     increment: (m) => m.hits ?? 0,
   },
   {
@@ -1113,7 +1113,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Warm Hands',
     desc: 'Hit the puck 20 times today',
     target: 20,
-    reward: 4,
+    reward: 5,
     increment: (m) => m.hits ?? 0,
   },
   {
@@ -1129,7 +1129,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Active Stick',
     desc: 'Hit the puck 40 times today',
     target: 40,
-    reward: 6,
+    reward: 5,
     increment: (m) => m.hits ?? 0,
   },
   {
@@ -1137,7 +1137,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Contact King',
     desc: 'Hit the puck 50 times today',
     target: 50,
-    reward: 7,
+    reward: 5,
     increment: (m) => m.hits ?? 0,
   },
   {
@@ -1145,7 +1145,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Busy Day',
     desc: 'Hit the puck 60 times today',
     target: 60,
-    reward: 8,
+    reward: 5,
     increment: (m) => m.hits ?? 0,
   },
   {
@@ -1153,7 +1153,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Relentless',
     desc: 'Hit the puck 70 times today',
     target: 70,
-    reward: 9,
+    reward: 5,
     increment: (m) => m.hits ?? 0,
   },
   {
@@ -1161,7 +1161,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Slap Festival',
     desc: 'Hit the puck 80 times today',
     target: 80,
-    reward: 10,
+    reward: 5,
     increment: (m) => m.hits ?? 0,
   },
   {
@@ -1169,7 +1169,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Stay Active',
     desc: 'Record 10+ hits in a single match',
     target: 1,
-    reward: 4,
+    reward: 5,
     increment: (m) => ((m.hits ?? 0) >= 10 ? 1 : 0),
   },
   {
@@ -1185,7 +1185,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Work Rate',
     desc: 'Record 20+ hits in a single match',
     target: 1,
-    reward: 6,
+    reward: 5,
     increment: (m) => ((m.hits ?? 0) >= 20 ? 1 : 0),
   },
   {
@@ -1193,7 +1193,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Workhorse',
     desc: 'Get 25+ hits in one match',
     target: 1,
-    reward: 7,
+    reward: 5,
     increment: (m) => ((m.hits ?? 0) >= 25 ? 1 : 0),
   },
   // -- Power-ups ----------------------------------
@@ -1202,7 +1202,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Power Nibble',
     desc: 'Collect 1 power-up today',
     target: 1,
-    reward: 4,
+    reward: 5,
     increment: (m) => m.powerupsCollected ?? 0,
   },
   {
@@ -1210,7 +1210,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Power Snack',
     desc: 'Collect 2 power-ups today',
     target: 2,
-    reward: 6,
+    reward: 5,
     increment: (m) => m.powerupsCollected ?? 0,
   },
   {
@@ -1218,7 +1218,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Power Bite',
     desc: 'Collect 3 power-ups today',
     target: 3,
-    reward: 8,
+    reward: 5,
     increment: (m) => m.powerupsCollected ?? 0,
   },
   {
@@ -1226,7 +1226,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Power Grab',
     desc: 'Collect 4 power-ups today',
     target: 4,
-    reward: 9,
+    reward: 5,
     increment: (m) => m.powerupsCollected ?? 0,
   },
   {
@@ -1234,7 +1234,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Power Collector',
     desc: 'Collect 5 power-ups today',
     target: 5,
-    reward: 10,
+    reward: 5,
     increment: (m) => m.powerupsCollected ?? 0,
   },
   {
@@ -1242,7 +1242,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'One Power-Up',
     desc: 'Collect a power-up in a match',
     target: 1,
-    reward: 4,
+    reward: 5,
     increment: (m) => ((m.powerupsCollected ?? 0) >= 1 ? 1 : 0),
   },
   {
@@ -1250,7 +1250,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Power Pair',
     desc: 'Collect 2+ power-ups in one match',
     target: 1,
-    reward: 8,
+    reward: 5,
     increment: (m) => ((m.powerupsCollected ?? 0) >= 2 ? 1 : 0),
   },
   // -- Margins & style ----------------------------
@@ -1259,7 +1259,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Narrow Escape',
     desc: 'Win a match by exactly 1 goal',
     target: 1,
-    reward: 7,
+    reward: 5,
     increment: (m) =>
       m.hasOpponent && m.won && m.playerScore - m.opponentScore === 1 ? 1 : 0,
   },
@@ -1268,7 +1268,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Comfortable Win',
     desc: 'Win a match by 2+ goals',
     target: 1,
-    reward: 6,
+    reward: 5,
     increment: (m) =>
       m.hasOpponent && m.won && m.playerScore - m.opponentScore >= 2 ? 1 : 0,
   },
@@ -1277,7 +1277,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Clear Winner',
     desc: 'Win a match by 3+ goals',
     target: 1,
-    reward: 8,
+    reward: 5,
     increment: (m) =>
       m.hasOpponent && m.won && m.playerScore - m.opponentScore >= 3 ? 1 : 0,
   },
@@ -1286,7 +1286,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Big Margin',
     desc: 'Win by 4+ goals',
     target: 1,
-    reward: 9,
+    reward: 5,
     increment: (m) =>
       m.hasOpponent && m.won && m.playerScore - m.opponentScore >= 4 ? 1 : 0,
   },
@@ -1295,7 +1295,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Clutch',
     desc: 'Win by 1 or 2 goals',
     target: 1,
-    reward: 6,
+    reward: 5,
     increment: (m) => {
       if (!m.hasOpponent || !m.won) return 0;
       const d = m.playerScore - m.opponentScore;
@@ -1316,7 +1316,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Quick Touch',
     desc: 'Hit 700+ puck speed',
     target: 1,
-    reward: 4,
+    reward: 5,
     increment: (m) => ((m.maxPuckSpeed ?? 0) >= 700 ? 1 : 0),
   },
   {
@@ -1332,7 +1332,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Snappy Shot',
     desc: 'Hit 900+ puck speed',
     target: 1,
-    reward: 6,
+    reward: 5,
     increment: (m) => ((m.maxPuckSpeed ?? 0) >= 900 ? 1 : 0),
   },
   {
@@ -1340,7 +1340,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Fast Shot',
     desc: 'Hit a puck at 1000+ speed',
     target: 1,
-    reward: 7,
+    reward: 5,
     increment: (m) => ((m.maxPuckSpeed ?? 0) >= 1000 ? 1 : 0),
   },
   {
@@ -1348,7 +1348,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Laser',
     desc: 'Hit 1100+ puck speed',
     target: 1,
-    reward: 8,
+    reward: 5,
     increment: (m) => ((m.maxPuckSpeed ?? 0) >= 1100 ? 1 : 0),
   },
   {
@@ -1356,7 +1356,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Rocket',
     desc: 'Hit a puck at 1200+ speed',
     target: 1,
-    reward: 10,
+    reward: 5,
     increment: (m) => ((m.maxPuckSpeed ?? 0) >= 1200 ? 1 : 0),
   },
   // -- Personality / AI flavor --------------------
@@ -1365,7 +1365,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Stop the Attack',
     desc: 'Beat an Attacker AI once',
     target: 1,
-    reward: 7,
+    reward: 5,
     increment: (m) =>
       m.opponentType === 'ai' && m.hasOpponent && m.personality === 'attacker' && m.won ? 1 : 0,
   },
@@ -1374,7 +1374,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Crack the Wall',
     desc: 'Beat a Defender AI once',
     target: 1,
-    reward: 7,
+    reward: 5,
     increment: (m) =>
       m.opponentType === 'ai' && m.hasOpponent && m.personality === 'defender' && m.won ? 1 : 0,
   },
@@ -1383,7 +1383,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'All-Rounder',
     desc: 'Beat a Balanced AI once',
     target: 1,
-    reward: 6,
+    reward: 5,
     increment: (m) =>
       m.opponentType === 'ai' && m.hasOpponent && m.personality === 'balanced' && m.won ? 1 : 0,
   },
@@ -1392,7 +1392,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Attack Denied',
     desc: 'Beat Attacker AI twice',
     target: 2,
-    reward: 10,
+    reward: 5,
     increment: (m) =>
       m.opponentType === 'ai' && m.personality === 'attacker' && m.won ? 1 : 0,
   },
@@ -1401,7 +1401,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Wall Cracker',
     desc: 'Beat Defender AI twice',
     target: 2,
-    reward: 10,
+    reward: 5,
     increment: (m) =>
       m.opponentType === 'ai' && m.personality === 'defender' && m.won ? 1 : 0,
   },
@@ -1410,7 +1410,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'AI Hunter',
     desc: 'Beat any AI twice today',
     target: 2,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.opponentType === 'ai' && m.won ? 1 : 0),
   },
   // -- Match modes --------------------------------
@@ -1419,7 +1419,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Sudden Win',
     desc: 'Win a sudden-death match',
     target: 1,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.winCondition === 'sudden_death' && m.won ? 1 : 0),
   },
   {
@@ -1427,7 +1427,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Beat the Clock',
     desc: 'Win a timed match',
     target: 1,
-    reward: 7,
+    reward: 5,
     increment: (m) => (m.winCondition === 'timed' && m.won ? 1 : 0),
   },
   {
@@ -1444,7 +1444,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Time Trial',
     desc: 'Play a timed match',
     target: 1,
-    reward: 4,
+    reward: 5,
     increment: (m) => (m.winCondition === 'timed' ? 1 : 0),
   },
   {
@@ -1452,7 +1452,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Sudden Entry',
     desc: 'Play a sudden-death match',
     target: 1,
-    reward: 4,
+    reward: 5,
     increment: (m) => (m.winCondition === 'sudden_death' ? 1 : 0),
   },
   {
@@ -1460,7 +1460,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Timed Scorer',
     desc: 'Win a timed match and score 2+',
     target: 1,
-    reward: 9,
+    reward: 5,
     increment: (m) =>
       m.winCondition === 'timed' && m.won && m.playerScore >= 2 ? 1 : 0,
   },
@@ -1470,7 +1470,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Solid Match',
     desc: 'Win a match and score 3+ goals',
     target: 1,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won && m.playerScore >= 3 ? 1 : 0),
   },
   {
@@ -1478,7 +1478,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Steady Defense',
     desc: 'Win while conceding at most 2',
     target: 1,
-    reward: 6,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won && m.opponentScore <= 2 ? 1 : 0),
   },
   {
@@ -1486,7 +1486,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Back to Back',
     desc: 'Win 2 matches today',
     target: 2,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won ? 1 : 0),
   },
   {
@@ -1494,7 +1494,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Consistent',
     desc: 'Score 2+ goals in two different matches',
     target: 2,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.playerScore >= 2 ? 1 : 0),
   },
   // -- Rally / activity ---------------------------
@@ -1503,7 +1503,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Mini Rally',
     desc: 'Rally of 6+ hits',
     target: 1,
-    reward: 4,
+    reward: 5,
     increment: (m) => ((m.longestRally ?? 0) >= 6 ? 1 : 0),
   },
   {
@@ -1519,7 +1519,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Ten Touch',
     desc: 'Rally of 10+ hits',
     target: 1,
-    reward: 6,
+    reward: 5,
     increment: (m) => ((m.longestRally ??  0) >= 10 ? 1 : 0),
   },
   {
@@ -1527,7 +1527,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Nice Rally',
     desc: 'Have a rally of 12+ hits',
     target: 1,
-    reward: 7,
+    reward: 5,
     increment: (m) => ((m.longestRally ?? 0) >= 12 ? 1 : 0),
   },
   {
@@ -1535,7 +1535,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Extended Rally',
     desc: 'Rally of 14+ hits',
     target: 1,
-    reward: 8,
+    reward: 5,
     increment: (m) => ((m.longestRally ?? 0) >= 14 ? 1 : 0),
   },
   {
@@ -1543,7 +1543,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Long Rally',
     desc: 'Have a rally of 15+ hits',
     target: 1,
-    reward: 9,
+    reward: 5,
     increment: (m) => ((m.longestRally ?? 0) >= 15 ? 1 : 0),
   },
   // -- Comeback (mild) ----------------------------
@@ -1552,7 +1552,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Turnaround',
     desc: 'Win after trailing by 1+ goal',
     target: 1,
-    reward: 7,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won && (m.maxDeficit ?? 0) >= 1 ? 1 : 0),
   },
   {
@@ -1560,7 +1560,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Fight Back',
     desc: 'Win after trailing by 2+ goals',
     target: 1,
-    reward: 9,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won && (m.maxDeficit ?? 0) >= 2 ? 1 : 0),
   },
   {
@@ -1568,7 +1568,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Equalizer Path',
     desc: 'Win after trailing',
     target: 1,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won && (m.maxDeficit ?? 0) >= 1 ? 1 : 0),
   },
   // -- Stages -------------------------------------
@@ -1577,7 +1577,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Campaign Touch',
     desc: 'Play a campaign stage',
     target: 1,
-    reward: 4,
+    reward: 5,
     increment: (m) => (m.isStage ? 1 : 0),
   },
   {
@@ -1585,7 +1585,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Stage Victory',
     desc: 'Win a campaign stage',
     target: 1,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.isStage && m.won ? 1 : 0),
   },
   {
@@ -1593,7 +1593,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Star Today',
     desc: 'Earn any star on a stage',
     target: 1,
-    reward: 6,
+    reward: 5,
     increment: (m) => (m.isStage && (m.starsEarned ?? 0) >= 1 ? 1 : 0),
   },
   {
@@ -1601,7 +1601,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Perfect Stage',
     desc: 'Earn 3 stars on a stage',
     target: 1,
-    reward: 10,
+    reward: 5,
     increment: (m) => (m.isStage && (m.starsEarned ?? 0) >= 3 ? 1 : 0),
   },
   {
@@ -1609,7 +1609,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Stage Clear',
     desc: 'Clear any campaign stage today',
     target: 1,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.isStage && m.won ? 1 : 0),
   },
   {
@@ -1617,7 +1617,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Star Seeker',
     desc: 'Earn at least 1 star on a stage',
     target: 1,
-    reward: 6,
+    reward: 5,
     increment: (m) => (m.isStage && (m.starsEarned ?? 0) >= 1 ? 1 : 0),
   },
   {
@@ -1625,7 +1625,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Double Star',
     desc: 'Earn 2+ stars on a stage',
     target: 1,
-    reward: 9,
+    reward: 5,
     increment: (m) => (m.isStage && (m.starsEarned ?? 0) >= 2 ? 1 : 0),
   },
   // -- Simple daily habits ------------------------
@@ -1634,7 +1634,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Just Play',
     desc: 'Complete any match',
     target: 1,
-    reward: 3,
+    reward: 5,
     increment: (m) => (m.hasOpponent ? 1 : 0),
   },
   {
@@ -1642,7 +1642,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Something Good',
     desc: 'Win a match or score 3 goals in one',
     target: 1,
-    reward: 6,
+    reward: 5,
     increment: (m) =>
       m.hasOpponent && (m.won || m.playerScore >= 3) ? 1 : 0,
   },
@@ -1651,7 +1651,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Stay Close',
     desc: 'Finish a match without losing by 4+',
     target: 1,
-    reward: 4,
+    reward: 5,
     increment: (m) =>
       m.hasOpponent && !(m.opponentScore - m.playerScore >= 4 && !m.won) ? 1 : 0,
   },
@@ -1660,7 +1660,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Finish Strong',
     desc: 'Win your last match of the session',
     target: 1,
-    reward: 6,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won ? 1 : 0),
   },
   {
@@ -1668,7 +1668,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Always Score',
     desc: 'Finish a match with at least 1 goal',
     target: 1,
-    reward: 4,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.playerScore >= 1 ? 1 : 0),
   },
   {
@@ -1676,7 +1676,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Vs AI',
     desc: 'Play a match against AI',
     target: 1,
-    reward: 3,
+    reward: 5,
     increment: (m) => (m.opponentType === 'ai' && m.hasOpponent ? 1 : 0),
   },
   {
@@ -1692,7 +1692,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Easy Shutout',
     desc: 'Shut out an Easy AI',
     target: 1,
-    reward: 8,
+    reward: 5,
     increment: (m) =>
       m.opponentType === 'ai' &&
       m.difficulty === 'easy' &&
@@ -1706,7 +1706,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Medium Attack',
     desc: 'Score 3+ vs Medium AI',
     target: 1,
-    reward: 7,
+    reward: 5,
     increment: (m) =>
       m.opponentType === 'ai' &&
       m.difficulty === 'medium' &&
@@ -1719,7 +1719,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Play & Score',
     desc: 'Play 2 matches and score in both',
     target: 2,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.playerScore >= 1 ? 1 : 0),
   },
   {
@@ -1727,7 +1727,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Lead and Finish',
     desc: 'Score first and win the match',
     target: 1,
-    reward: 8,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won && m.scoredFirst ? 1 : 0),
   },
   {
@@ -1735,7 +1735,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Active Winner',
     desc: 'Win a match with 20+ hits',
     target: 1,
-    reward: 7,
+    reward: 5,
     increment: (m) => (m.hasOpponent && m.won && (m.hits ?? 0) >= 20 ? 1 : 0),
   },
   {
@@ -1743,7 +1743,7 @@ export const CHALLENGES: DailyChallengeDef[] = [
     title: 'Double Duty',
     desc: 'Play 2 matches and win at least 1',
     target: 2,
-    reward: 6,
+    reward: 5,
     increment: (m) => (m.hasOpponent ? 1 : 0),
   },
 ];

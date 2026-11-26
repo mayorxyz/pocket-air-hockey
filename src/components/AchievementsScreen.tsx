@@ -43,7 +43,7 @@ function ProgressBar({ value, max, color }: { value: number; max: number; color:
 }
 
 function streakReward(day: number): number {
-  return 5 + Math.min(20, Math.max(0, day - 1) * 5);
+  return 5 + Math.min(20, Math.max(0, day - 1) * 2);
 }
 
 function formatCountdown(ms: number): string {
