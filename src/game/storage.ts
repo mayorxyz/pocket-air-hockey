@@ -1,7 +1,9 @@
 import {
+  CHALLENGES,
   getDailyChallengeForDate,
   getDailyTasksForDate,
   getLocalDateKey,
+  getNextDailyTasksBatch,
   STAGES,
 } from './registries';
 import { SKINS } from './skins';
@@ -81,6 +83,8 @@ export function createFreshDaily(dateKey = getLocalDateKey()): DailyProgress {
 export function createFreshDailyTasks(dateKey = getLocalDateKey()): DailyTasksState {
   return {
     date: dateKey,
+    round: 0,
+    completedIds: [],
     tasks: getDailyTasksForDate(dateKey).map((t) => ({
       id: t.id,
       progress: 0,
@@ -346,12 +350,30 @@ function sanitizeDaily(raw: unknown): DailyProgress {
 
 export function ensureDailyTasksFresh(tasks: DailyTasksState): DailyTasksState {
   const today = getLocalDateKey();
-  if (tasks && tasks.date === today) {
-    const expectedIds = getDailyTasksForDate(today).map((t) => t.id);
-    if (
-      expectedIds.length === tasks.tasks.length &&
-      expectedIds.every((id) => tasks.tasks.some((t) => t.id === id))
-    ) {
+  if (tasks && tasks.date === today && Array.isArray(tasks.tasks) && tasks.tasks.length > 0) {
+    const validIds = new Set(CHALLENGES.map((c) => c.id));
+    const allValid = tasks.tasks.every((t) => t && validIds.has(t.id));
+    if (allValid) {
+      if (tasks.tasks.every((t) => t.claimed)) {
+        const nextRound = (tasks.round ?? 0) + 1;
+        const lastBatchIds = tasks.tasks.map((t) => t.id);
+        const mergedCompleted = Array.from(
+          new Set([...(tasks.completedIds ?? []), ...lastBatchIds])
+        );
+        const { tasks: nextDefs, resetCompleted } = getNextDailyTasksBatch(
+          today,
+          3,
+          nextRound,
+          mergedCompleted,
+          lastBatchIds
+        );
+        return {
+          date: today,
+          round: nextRound,
+          completedIds: resetCompleted ? [] : mergedCompleted,
+          tasks: nextDefs.map((d) => ({ id: d.id, progress: 0, claimed: false })),
+        };
+      }
       return tasks;
     }
   }
@@ -360,22 +382,37 @@ export function ensureDailyTasksFresh(tasks: DailyTasksState): DailyTasksState {
 
 function sanitizeDailyTasks(raw: unknown): DailyTasksState {
   const today = getLocalDateKey();
-  const defs = getDailyTasksForDate(today);
   if (!raw || typeof raw !== 'object') return createFreshDailyTasks(today);
   const r = raw as Partial<DailyTasksState>;
-  if (r.date !== today || !Array.isArray(r.tasks)) return createFreshDailyTasks(today);
+  if (r.date !== today || !Array.isArray(r.tasks) || r.tasks.length === 0) {
+    return createFreshDailyTasks(today);
+  }
 
-  const rawTasks = r.tasks;
-  const tasks = defs.map((def) => {
-    const found = rawTasks.find((t) => t && t.id === def.id);
-    const progress = Math.round(clampNum(found?.progress, 0, def.target, 0));
-    return {
-      id: def.id,
-      progress,
-      claimed: Boolean(found?.claimed) && progress >= def.target,
-    };
+  const byId = new Map(CHALLENGES.map((c) => [c.id, c]));
+  const seen = new Set<string>();
+  const tasks = r.tasks.flatMap((t) => {
+    if (!t || typeof t.id !== 'string' || seen.has(t.id)) return [];
+    const def = byId.get(t.id);
+    if (!def) return [];
+    seen.add(t.id);
+    const progress = Math.round(clampNum(t.progress, 0, def.target, 0));
+    return [
+      {
+        id: def.id,
+        progress,
+        claimed: Boolean(t.claimed) && progress >= def.target,
+      },
+    ];
   });
-  return { date: today, tasks };
+
+  if (tasks.length === 0) return createFreshDailyTasks(today);
+
+  const round = Math.round(clampNum(r.round, 0, 1_000_000, 0));
+  const completedIds = Array.isArray(r.completedIds)
+    ? Array.from(new Set(r.completedIds.filter((id): id is string => typeof id === 'string' && byId.has(id))))
+    : [];
+
+  return ensureDailyTasksFresh({ date: today, round, completedIds, tasks });
 }
 
 function migrate1to2(raw: Record<string, unknown>): Record<string, unknown> {
@@ -409,7 +446,7 @@ function migrate2to3(raw: Record<string, unknown>, prevVersion: number): SaveDat
       ? raw.tutorialCompleted
       : stats.totalMatches > 0;
   const lastCrateClaimAt = Math.round(clampNum(raw.lastCrateClaimAt, 0, 9_999_999_999_999, 0));
-  const dailyLoginStreak = Math.round(clampNum(raw.dailyLoginStreak, 0, 10_000, 0));
+  const dailyLoginStreak = Math.round(clampNum(raw.dailyLoginStreak, 0, Number.MAX_SAFE_INTEGER, 0));
   const lastCrateDate = typeof raw.lastCrateDate === 'string' ? raw.lastCrateDate : '';
 
   return {

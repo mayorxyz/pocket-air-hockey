@@ -528,21 +528,59 @@ export function getDailyChallengeForDate(dateKey: string): DailyChallengeDef {
   return CHALLENGES[idx];
 }
 
-export function getDailyTasksForDate(dateKey: string, count = 3): DailyChallengeDef[] {
+function pickDeterministicChallenges(
+  seedKey: string,
+  pool: DailyChallengeDef[],
+  count: number
+): DailyChallengeDef[] {
   let seed = 0;
-  for (let i = 0; i < dateKey.length; i++) {
-    seed = (seed * 31 + dateKey.charCodeAt(i)) | 0;
+  for (let i = 0; i < seedKey.length; i++) {
+    seed = (seed * 31 + seedKey.charCodeAt(i)) | 0;
   }
   seed = Math.abs(seed) || 1;
   const used = new Set<number>();
   const picked: DailyChallengeDef[] = [];
-  const wanted = Math.min(count, CHALLENGES.length);
-  while (picked.length < wanted && used.size < CHALLENGES.length) {
+  const wanted = Math.min(count, pool.length);
+  while (picked.length < wanted && used.size < pool.length) {
     seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-    const idx = seed % CHALLENGES.length;
+    const idx = seed % pool.length;
     if (used.has(idx)) continue;
     used.add(idx);
-    picked.push(CHALLENGES[idx]);
+    picked.push(pool[idx]);
   }
   return picked;
+}
+
+export function getDailyTasksForDate(dateKey: string, count = 3): DailyChallengeDef[] {
+  return pickDeterministicChallenges(dateKey, CHALLENGES, count);
+}
+
+export function getNextDailyTasksBatch(
+  dateKey: string,
+  count = 3,
+  round = 0,
+  completedIds: string[] = [],
+  lastBatchIds: string[] = []
+): { tasks: DailyChallengeDef[]; resetCompleted: boolean } {
+  const completedSet = new Set(completedIds);
+  const remaining = CHALLENGES.filter((c) => !completedSet.has(c.id));
+  const seedKey = round > 0 ? `${dateKey}#r${round}` : dateKey;
+
+  if (remaining.length >= count) {
+    return {
+      tasks: pickDeterministicChallenges(seedKey, remaining, count),
+      resetCompleted: false,
+    };
+  }
+
+  // All available daily challenges have been completed — restart from the full pool
+  const lastSet = new Set(lastBatchIds);
+  const freshPool =
+    CHALLENGES.length > count + lastSet.size
+      ? CHALLENGES.filter((c) => !lastSet.has(c.id))
+      : CHALLENGES;
+  return {
+    tasks: pickDeterministicChallenges(seedKey, freshPool, count),
+    resetCompleted: true,
+  };
 }

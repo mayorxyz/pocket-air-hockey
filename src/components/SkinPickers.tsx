@@ -731,7 +731,7 @@ export const SkinsScreen: React.FC<SkinsScreenProps> = ({
                 tableSkinId={previewTableId}
                 puckSkinId={previewPuckId}
                 malletSkinId={previewMalletId}
-                reduceMotion={save.settings.reduceMotion}
+                reduceMotion={false}
                 showBumpers={showBumpers}
               />
             </div>

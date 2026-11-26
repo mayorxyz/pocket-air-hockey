@@ -139,6 +139,8 @@ export interface DailyTaskProgress {
 
 export interface DailyTasksState {
   date: string;
+  round?: number;
+  completedIds?: string[];
   tasks: DailyTaskProgress[];
 }
 

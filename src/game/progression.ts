@@ -1,8 +1,9 @@
 import {
   ACHIEVEMENTS,
+  CHALLENGES,
   getDailyChallengeForDate,
-  getDailyTasksForDate,
   getLocalDateKey,
+  getNextDailyTasksBatch,
   getStageById,
   STAGES,
   WORLDS,
@@ -11,6 +12,7 @@ import { SkinCategory, SKINS } from './skins';
 import { ensureDailyFresh, ensureDailyTasksFresh, saveStore } from './storage';
 import {
   CoinBreakdown,
+  DailyTasksState,
   MatchHistoryItem,
   MatchResult,
   MatchSummary,
@@ -104,6 +106,11 @@ export function deductContinueCoins(save: SaveDataV3, cost: number): SaveDataV3 
 
 export const ARENA_CRATE_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
+export function getDailyLoginReward(day: number): number {
+  const streakBonus = Math.min(8, Math.max(0, day - 1) * 2);
+  return 2 + streakBonus;
+}
+
 export function getArenaCrateStatus(
   save: SaveDataV3,
   nowMs = Date.now()
@@ -124,8 +131,7 @@ export function getArenaCrateStatus(
     nextStreak = Math.max(1, save.dailyLoginStreak) + 1;
   }
 
-  const streakBonus = Math.min(20, Math.max(0, nextStreak - 1) * 5);
-  const rewardCoins = 5 + streakBonus;
+  const rewardCoins = getDailyLoginReward(nextStreak);
 
   return { ready, remainingMs, rewardCoins, nextStreak };
 }
@@ -154,27 +160,57 @@ export function claimDailyTaskReward(
   save: SaveDataV3,
   taskId: string,
   nowMs = Date.now()
-): { claimed: boolean; rewardCoins: number; save: SaveDataV3 } {
+): { claimed: boolean; rewardCoins: number; restarted: boolean; save: SaveDataV3 } {
   const today = getLocalDateKey(new Date(nowMs));
   const state = ensureDailyTasksFresh(save.dailyTasks);
-  const def = getDailyTasksForDate(today).find((d) => d.id === taskId);
-  if (!def) return { claimed: false, rewardCoins: 0, save };
-
   const task = state.tasks.find((t) => t.id === taskId);
-  if (!task || task.claimed || task.progress < def.target) {
-    return { claimed: false, rewardCoins: 0, save };
+  const def = CHALLENGES.find((d) => d.id === taskId);
+  if (!def || !task || task.claimed || task.progress < def.target) {
+    return { claimed: false, rewardCoins: 0, restarted: false, save };
+  }
+
+  const updatedTasks = state.tasks.map((t) =>
+    t.id === taskId ? { ...t, claimed: true } : t
+  );
+  const allClaimed = updatedTasks.every((t) => t.claimed);
+  let nextDailyTasks: DailyTasksState;
+  let restarted = false;
+
+  if (allClaimed) {
+    restarted = true;
+    const nextRound = (state.round ?? 0) + 1;
+    const lastBatchIds = updatedTasks.map((t) => t.id);
+    const mergedCompleted = Array.from(
+      new Set([...(state.completedIds ?? []), ...lastBatchIds])
+    );
+    const { tasks: nextDefs, resetCompleted } = getNextDailyTasksBatch(
+      today,
+      3,
+      nextRound,
+      mergedCompleted,
+      lastBatchIds
+    );
+    nextDailyTasks = {
+      date: today,
+      round: nextRound,
+      completedIds: resetCompleted ? [] : mergedCompleted,
+      tasks: nextDefs.map((d) => ({ id: d.id, progress: 0, claimed: false })),
+    };
+  } else {
+    nextDailyTasks = {
+      ...state,
+      date: today,
+      tasks: updatedTasks,
+    };
   }
 
   const nextSave: SaveDataV3 = {
     ...save,
     coins: save.coins + def.reward,
-    dailyTasks: {
-      date: today,
-      tasks: state.tasks.map((t) => (t.id === taskId ? { ...t, claimed: true } : t)),
-    },
+    dailyTasks: nextDailyTasks,
   };
   saveStore.set(nextSave, true);
-  return { claimed: true, rewardCoins: def.reward, save: nextSave };
+  return { claimed: true, rewardCoins: def.reward, restarted, save: nextSave };
 }
 
 export function completeTutorialSave(save: SaveDataV3, skipped: boolean): {
@@ -456,11 +492,13 @@ export function finalizeMatch(currentSave: SaveDataV3, result: MatchResult): {
 
   // Daily tasks progress (rewards are claimed manually from the achievements screen)
   const tasksState = ensureDailyTasksFresh(currentSave.dailyTasks);
-  const taskDefs = getDailyTasksForDate(todayKey);
-  const nextTasks = taskDefs.map((def) => {
-    const existing = tasksState.tasks.find((t) => t.id === def.id);
-    const progress = Math.min(def.target, (existing?.progress ?? 0) + def.increment(result));
-    return { id: def.id, progress, claimed: existing?.claimed ?? false };
+  const nextTasks = tasksState.tasks.map((existing) => {
+    const def = CHALLENGES.find((c) => c.id === existing.id);
+    if (!def) return existing;
+    const progress = existing.claimed
+      ? def.target
+      : Math.min(def.target, existing.progress + def.increment(result));
+    return { id: existing.id, progress, claimed: existing.claimed };
   });
 
   const nextSave: SaveDataV3 = {
@@ -477,7 +515,12 @@ export function finalizeMatch(currentSave: SaveDataV3, result: MatchResult): {
       completed: nowCompleted,
       rewardClaimed,
     },
-    dailyTasks: { date: todayKey, tasks: nextTasks },
+    dailyTasks: {
+      date: todayKey,
+      round: tasksState.round ?? 0,
+      completedIds: tasksState.completedIds ?? [],
+      tasks: nextTasks,
+    },
     stages: nextStages,
     grandChampionBadge: nextGrandChampionBadge,
     legend100Badge: nextLegend100Badge,

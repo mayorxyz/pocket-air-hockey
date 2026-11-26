@@ -3,10 +3,13 @@ import {
   PlayerStats,
 } from './types';
 
+export type Rarity = 'common' | 'rare' | 'mystic' | 'legendary';
+
 export interface AchievementDef {
   id: string;
   name: string;
   desc: string;
+  rarity: Rarity;
   points?: number;
   target?: number;
   progress?: (stats: PlayerStats) => number;
@@ -32,6 +35,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(1, s.wins),
     check: (s) => s.wins >= 1,
     points: 10,
+    rarity: 'common',
   },
   {
     id: 'shutout',
@@ -39,6 +43,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Win 7-0 or better without conceding',
     check: (_s, m) => m.hasOpponent && m.won && m.opponentScore === 0 && m.playerScore >= 7,
     points: 40,
+    rarity: 'rare',
   },
   {
     id: 'streak_5',
@@ -48,6 +53,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(5, s.bestStreak),
     check: (s) => s.bestStreak >= 5,
     points: 30,
+    rarity: 'rare',
   },
   {
     id: 'hits_100',
@@ -57,6 +63,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(100, s.totalHits),
     check: (s) => s.totalHits >= 100,
     points: 15,
+    rarity: 'common',
   },
   {
     id: 'comeback',
@@ -64,6 +71,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Win after trailing by 3 or more goals',
     check: (_s, m) => m.hasOpponent && m.won && m.maxDeficit >= 3,
     points: 35,
+    rarity: 'rare',
   },
   {
     id: 'speed_demon',
@@ -73,6 +81,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(1300, Math.round(s.fastestPuck)),
     check: (s, m) => m.maxPuckSpeed >= 1300 || s.fastestPuck >= 1300,
     points: 25,
+    rarity: 'common',
   },
   {
     id: 'power_player',
@@ -82,6 +91,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(10, s.powerupsCollected),
     check: (s) => s.powerupsCollected >= 10,
     points: 20,
+    rarity: 'common',
   },
   {
     id: 'giant_slayer',
@@ -94,6 +104,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       m.personality === 'attacker' &&
       m.won,
     points: 45,
+    rarity: 'rare',
   },
 
   // ── Wins milestones ────────────────────────────
@@ -105,6 +116,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(5, s.wins),
     check: (s) => s.wins >= 5,
     points: 15,
+    rarity: 'common',
   },
   {
     id: 'wins_10',
@@ -114,6 +126,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(10, s.wins),
     check: (s) => s.wins >= 10,
     points: 25,
+    rarity: 'common',
   },
   {
     id: 'wins_25',
@@ -123,6 +136,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(25, s.wins),
     check: (s) => s.wins >= 25,
     points: 50,
+    rarity: 'rare',
   },
   {
     id: 'wins_50',
@@ -132,6 +146,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(50, s.wins),
     check: (s) => s.wins >= 50,
     points: 80,
+    rarity: 'mystic',
   },
   {
     id: 'wins_100',
@@ -141,6 +156,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(100, s.wins),
     check: (s) => s.wins >= 100,
     points: 150,
+    rarity: 'mystic',
   },
   {
     id: 'wins_250',
@@ -150,6 +166,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(250, s.wins),
     check: (s) => s.wins >= 250,
     points: 300,
+    rarity: 'legendary',
   },
   {
     id: 'wins_500',
@@ -159,6 +176,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(500, s.wins),
     check: (s) => s.wins >= 500,
     points: 500,
+    rarity: 'legendary',
   },
 
   // ── Streaks ────────────────────────────────────
@@ -170,6 +188,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(3, s.bestStreak),
     check: (s) => s.bestStreak >= 3,
     points: 15,
+    rarity: 'common',
   },
   {
     id: 'streak_7',
@@ -179,6 +198,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(7, s.bestStreak),
     check: (s) => s.bestStreak >= 7,
     points: 45,
+    rarity: 'rare',
   },
   {
     id: 'streak_10',
@@ -188,6 +208,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(10, s.bestStreak),
     check: (s) => s.bestStreak >= 10,
     points: 75,
+    rarity: 'rare',
   },
   {
     id: 'streak_15',
@@ -197,6 +218,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(15, s.bestStreak),
     check: (s) => s.bestStreak >= 15,
     points: 120,
+    rarity: 'mystic',
   },
   {
     id: 'streak_25',
@@ -206,6 +228,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(25, s.bestStreak),
     check: (s) => s.bestStreak >= 25,
     points: 200,
+    rarity: 'legendary',
   },
 
   // ── Shutouts & clean sheets ────────────────────
@@ -215,6 +238,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Win without conceding a single goal',
     check: (_s, m) => m.hasOpponent && m.won && m.opponentScore === 0,
     points: 25,
+    rarity: 'common',
   },
   {
     id: 'shutout_5',
@@ -224,6 +248,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(5, s.shutouts ?? 0),
     check: (s) => (s.shutouts ?? 0) >= 5,
     points: 60,
+    rarity: 'rare',
   },
   {
     id: 'shutout_10',
@@ -233,6 +258,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(10, s.shutouts ?? 0),
     check: (s) => (s.shutouts ?? 0) >= 10,
     points: 100,
+    rarity: 'mystic',
   },
   {
     id: 'perfect_10',
@@ -240,6 +266,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Win 10-0',
     check: (_s, m) => m.hasOpponent && m.won && m.playerScore >= 10 && m.opponentScore === 0,
     points: 55,
+    rarity: 'rare',
   },
 
   // ── Score & margin ─────────────────────────────
@@ -249,6 +276,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Score 3 goals in a single match',
     check: (_s, m) => m.hasOpponent && m.playerScore >= 3,
     points: 15,
+    rarity: 'common',
   },
   {
     id: 'goal_machine',
@@ -256,6 +284,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Score 7+ goals in a single match',
     check: (_s, m) => m.hasOpponent && m.playerScore >= 7,
     points: 30,
+    rarity: 'rare',
   },
   {
     id: 'blowout',
@@ -263,6 +292,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Win by 5 or more goals',
     check: (_s, m) => m.hasOpponent && m.won && m.playerScore - m.opponentScore >= 5,
     points: 30,
+    rarity: 'rare',
   },
   {
     id: 'nail_biter',
@@ -270,6 +300,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Win by exactly 1 goal',
     check: (_s, m) => m.hasOpponent && m.won && m.playerScore - m.opponentScore === 1,
     points: 20,
+    rarity: 'common',
   },
   {
     id: 'comeback_5',
@@ -277,6 +308,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Win after trailing by 5 or more goals',
     check: (_s, m) => m.hasOpponent && m.won && m.maxDeficit >= 5,
     points: 70,
+    rarity: 'rare',
   },
 
   // ── Hits & skill ───────────────────────────────
@@ -288,6 +320,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(500, s.totalHits),
     check: (s) => s.totalHits >= 500,
     points: 40,
+    rarity: 'rare',
   },
   {
     id: 'hits_1000',
@@ -297,6 +330,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(1000, s.totalHits),
     check: (s) => s.totalHits >= 1000,
     points: 80,
+    rarity: 'mystic',
   },
   {
     id: 'hits_5000',
@@ -306,6 +340,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(5000, s.totalHits),
     check: (s) => s.totalHits >= 5000,
     points: 200,
+    rarity: 'legendary',
   },
   {
     id: 'speed_1500',
@@ -315,6 +350,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(1500, Math.round(s.fastestPuck)),
     check: (s, m) => m.maxPuckSpeed >= 1500 || s.fastestPuck >= 1500,
     points: 40,
+    rarity: 'rare',
   },
   {
     id: 'speed_2000',
@@ -324,6 +360,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(2000, Math.round(s.fastestPuck)),
     check: (s, m) => m.maxPuckSpeed >= 2000 || s.fastestPuck >= 2000,
     points: 80,
+    rarity: 'mystic',
   },
 
   // ── Power-ups ──────────────────────────────────
@@ -335,6 +372,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(25, s.powerupsCollected),
     check: (s) => s.powerupsCollected >= 25,
     points: 35,
+    rarity: 'rare',
   },
   {
     id: 'powerups_50',
@@ -344,6 +382,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(50, s.powerupsCollected),
     check: (s) => s.powerupsCollected >= 50,
     points: 60,
+    rarity: 'rare',
   },
   {
     id: 'powerups_100',
@@ -353,6 +392,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(100, s.powerupsCollected),
     check: (s) => s.powerupsCollected >= 100,
     points: 120,
+    rarity: 'mystic',
   },
 
   // ── AI difficulty / personality ────────────────
@@ -363,6 +403,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (_s, m) =>
       m.opponentType === 'ai' && m.hasOpponent && m.difficulty === 'easy' && m.won,
     points: 10,
+    rarity: 'common',
   },
   {
     id: 'beat_medium',
@@ -371,6 +412,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (_s, m) =>
       m.opponentType === 'ai' && m.hasOpponent && m.difficulty === 'medium' && m.won,
     points: 20,
+    rarity: 'common',
   },
   {
     id: 'beat_hard',
@@ -379,6 +421,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (_s, m) =>
       m.opponentType === 'ai' && m.hasOpponent && m.difficulty === 'hard' && m.won,
     points: 35,
+    rarity: 'rare',
   },
   {
     id: 'beat_grandmaster',
@@ -390,6 +433,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       (m.personality as string) === 'adaptive_grandmaster' &&
       m.won,
     points: 80,
+    rarity: 'mystic',
   },
   {
     id: 'beat_eternal',
@@ -401,6 +445,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       (m.personality as string) === 'adaptive_eternal' &&
       m.won,
     points: 100,
+    rarity: 'mystic',
   },
   {
     id: 'beat_immortal',
@@ -412,6 +457,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       (m.personality as string) === 'adaptive_immortal' &&
       m.won,
     points: 150,
+    rarity: 'mystic',
   },
   {
     id: 'beat_defender',
@@ -420,6 +466,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (_s, m) =>
       m.opponentType === 'ai' && m.hasOpponent && m.personality === 'defender' && m.won,
     points: 25,
+    rarity: 'common',
   },
   {
     id: 'beat_attacker',
@@ -428,6 +475,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (_s, m) =>
       m.opponentType === 'ai' && m.hasOpponent && m.personality === 'attacker' && m.won,
     points: 25,
+    rarity: 'common',
   },
 
   // ── Campaign / stages ──────────────────────────
@@ -437,6 +485,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Clear Stage 1',
     check: (s) => (s.stages?.[1]?.stars ?? 0) >= 1,
     points: 10,
+    rarity: 'common',
   },
   {
     id: 'stage_10',
@@ -444,6 +493,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Clear Stage 10',
     check: (s) => (s.stages?.[10]?.stars ?? 0) >= 1,
     points: 30,
+    rarity: 'rare',
   },
   {
     id: 'stage_20',
@@ -451,6 +501,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Clear Stage 20',
     check: (s) => (s.stages?.[20]?.stars ?? 0) >= 1,
     points: 50,
+    rarity: 'rare',
   },
   {
     id: 'stage_30',
@@ -458,6 +509,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Clear Stage 30',
     check: (s) => (s.stages?.[30]?.stars ?? 0) >= 1,
     points: 75,
+    rarity: 'rare',
   },
   {
     id: 'stage_50',
@@ -465,6 +517,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Clear Stage 50',
     check: (s) => (s.stages?.[50]?.stars ?? 0) >= 1,
     points: 120,
+    rarity: 'mystic',
   },
   {
     id: 'stage_100',
@@ -472,6 +525,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Clear Stage 100',
     check: (s) => (s.stages?.[100]?.stars ?? 0) >= 1,
     points: 250,
+    rarity: 'legendary',
   },
   {
     id: 'three_star_5',
@@ -486,6 +540,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (s) =>
       Object.values(s.stages ?? {}).filter((st: any) => (st?.stars ?? 0) >= 3).length >= 5,
     points: 50,
+    rarity: 'rare',
   },
   {
     id: 'three_star_15',
@@ -500,6 +555,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (s) =>
       Object.values(s.stages ?? {}).filter((st: any) => (st?.stars ?? 0) >= 3).length >= 15,
     points: 100,
+    rarity: 'mystic',
   },
   {
     id: 'three_star_30',
@@ -514,6 +570,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (s) =>
       Object.values(s.stages ?? {}).filter((st: any) => (st?.stars ?? 0) >= 3).length >= 30,
     points: 180,
+    rarity: 'legendary',
   },
   {
     id: 'total_stars_50',
@@ -529,6 +586,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       Object.values(s.stages ?? {}).reduce((sum: number, st: any) => sum + (st?.stars ?? 0), 0) >=
       50,
     points: 60,
+    rarity: 'rare',
   },
   {
     id: 'total_stars_100',
@@ -544,6 +602,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       Object.values(s.stages ?? {}).reduce((sum: number, st: any) => sum + (st?.stars ?? 0), 0) >=
       100,
     points: 120,
+    rarity: 'mystic',
   },
   {
     id: 'total_stars_200',
@@ -559,6 +618,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       Object.values(s.stages ?? {}).reduce((sum: number, st: any) => sum + (st?.stars ?? 0), 0) >=
       200,
     points: 250,
+    rarity: 'legendary',
   },
 
   // ── Boss stages ────────────────────────────────
@@ -568,6 +628,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Defeat your first boss stage',
     check: (_s, m) => (m.isBoss ?? false) && m.won,
     points: 40,
+    rarity: 'rare',
   },
   {
     id: 'boss_3star',
@@ -575,6 +636,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Earn 3 stars on a boss stage',
     check: (_s, m) => (m.isBoss ?? false) && m.won && (m.starsEarned ?? 0) >= 3,
     points: 70,
+    rarity: 'rare',
   },
 
   // ── Coins & economy ────────────────────────────
@@ -586,6 +648,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(100, s.coins ?? 0),
     check: (s) => (s.coins ?? 0) >= 100,
     points: 20,
+    rarity: 'common',
   },
   {
     id: 'coins_500',
@@ -595,6 +658,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(500, s.coins ?? 0),
     check: (s) => (s.coins ?? 0) >= 500,
     points: 50,
+    rarity: 'rare',
   },
   {
     id: 'coins_1000',
@@ -604,6 +668,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(1000, s.coins ?? 0),
     check: (s) => (s.coins ?? 0) >= 1000,
     points: 100,
+    rarity: 'mystic',
   },
   {
     id: 'coins_earned_500',
@@ -613,6 +678,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(500, s.totalCoinsEarned ?? 0),
     check: (s) => (s.totalCoinsEarned ?? 0) >= 500,
     points: 40,
+    rarity: 'rare',
   },
   {
     id: 'coins_earned_2000',
@@ -622,6 +688,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(2000, s.totalCoinsEarned ?? 0),
     check: (s) => (s.totalCoinsEarned ?? 0) >= 2000,
     points: 100,
+    rarity: 'mystic',
   },
 
   // ── Skins / unlocks ────────────────────────────
@@ -631,6 +698,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Unlock any table skin',
     check: (s) => (s.unlockedTables?.length ?? 0) >= 2,
     points: 25,
+    rarity: 'common',
   },
   {
     id: 'unlock_puck',
@@ -638,6 +706,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Unlock any special puck',
     check: (s) => (s.unlockedPucks?.length ?? 0) >= 2,
     points: 25,
+    rarity: 'common',
   },
   {
     id: 'unlock_mallet',
@@ -645,6 +714,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Unlock any special mallet',
     check: (s) => (s.unlockedMallets?.length ?? 0) >= 2,
     points: 25,
+    rarity: 'common',
   },
   {
     id: 'collector_10',
@@ -664,6 +734,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
         (s.unlockedMallets?.length ?? 1) >=
       10,
     points: 60,
+    rarity: 'rare',
   },
 
   // ── Special match conditions ───────────────────
@@ -673,6 +744,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Win a sudden-death match',
     check: (_s, m) => m.winCondition === 'sudden_death' && m.won,
     points: 30,
+    rarity: 'rare',
   },
   {
     id: 'timed_win',
@@ -680,6 +752,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Win a timed match',
     check: (_s, m) => m.winCondition === 'timed' && m.won,
     points: 25,
+    rarity: 'common',
   },
   {
     id: 'double_puck_win',
@@ -687,6 +760,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Win a match while double-puck is active',
     check: (_s, m) => (m.doublePuckActive ?? false) && m.won,
     points: 35,
+    rarity: 'rare',
   },
   {
     id: 'no_powerup_win',
@@ -694,6 +768,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Win a match without collecting any power-up',
     check: (_s, m) => m.hasOpponent && m.won && (m.powerupsThisMatch ?? 0) === 0,
     points: 30,
+    rarity: 'rare',
   },
   {
     id: 'fast_win_60',
@@ -701,6 +776,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Win a match in under 60 seconds',
     check: (_s, m) => m.hasOpponent && m.won && (m.durationSec ?? 999) <= 60,
     points: 40,
+    rarity: 'rare',
   },
   {
     id: 'fast_win_30',
@@ -708,6 +784,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Win a match in under 30 seconds',
     check: (_s, m) => m.hasOpponent && m.won && (m.durationSec ?? 999) <= 30,
     points: 70,
+    rarity: 'rare',
   },
 
   // ── Play volume ────────────────────────────────
@@ -719,6 +796,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(10, (s.wins ?? 0) + (s.losses ?? 0)),
     check: (s) => (s.wins ?? 0) + (s.losses ?? 0) >= 10,
     points: 15,
+    rarity: 'common',
   },
   {
     id: 'matches_50',
@@ -728,6 +806,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(50, (s.wins ?? 0) + (s.losses ?? 0)),
     check: (s) => (s.wins ?? 0) + (s.losses ?? 0) >= 50,
     points: 40,
+    rarity: 'rare',
   },
   {
     id: 'matches_100',
@@ -737,6 +816,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(100, (s.wins ?? 0) + (s.losses ?? 0)),
     check: (s) => (s.wins ?? 0) + (s.losses ?? 0) >= 100,
     points: 80,
+    rarity: 'mystic',
   },
   {
     id: 'matches_250',
@@ -746,6 +826,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) => Math.min(250, (s.wins ?? 0) + (s.losses ?? 0)),
     check: (s) => (s.wins ?? 0) + (s.losses ?? 0) >= 250,
     points: 150,
+    rarity: 'mystic',
   },
 
   // ── Fun / rare ─────────────────────────────────
@@ -755,6 +836,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Lose your first match',
     check: (s) => (s.losses ?? 0) >= 1,
     points: 5,
+    rarity: 'common',
   },
   {
     id: 'close_loss',
@@ -763,6 +845,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (_s, m) =>
       m.hasOpponent && !m.won && m.opponentScore - m.playerScore === 1,
     points: 10,
+    rarity: 'common',
   },
   {
     id: 'own_goal_survive',
@@ -770,6 +853,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Win a match after conceding first',
     check: (_s, m) => m.hasOpponent && m.won && (m.concededFirst ?? false),
     points: 20,
+    rarity: 'common',
   },
   {
     id: 'long_rally',
@@ -777,6 +861,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Have a rally of 20+ hits in one exchange',
     check: (_s, m) => (m.longestRally ?? 0) >= 20,
     points: 35,
+    rarity: 'rare',
   },
   {
     id: 'long_rally_40',
@@ -784,6 +869,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Have a rally of 40+ hits in one exchange',
     check: (_s, m) => (m.longestRally ?? 0) >= 40,
     points: 70,
+    rarity: 'rare',
   },
 ];
 

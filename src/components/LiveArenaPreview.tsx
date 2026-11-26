@@ -238,11 +238,7 @@ export const LiveArenaPreview: React.FC<LiveArenaPreviewProps> = ({
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resizeCanvas) : null;
     ro?.observe(wrap);
 
-    const osReduceMotion =
-      typeof window !== 'undefined' &&
-      typeof window.matchMedia === 'function' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const isStatic = reduceMotion || osReduceMotion;
+    const isStatic = false;
 
     const trail: Array<{ x: number; y: number }> = [];
     let rafId = 0;
