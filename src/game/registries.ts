@@ -555,32 +555,32 @@ export function getDailyTasksForDate(dateKey: string, count = 3): DailyChallenge
   return pickDeterministicChallenges(dateKey, CHALLENGES, count);
 }
 
-export function getNextDailyTasksBatch(
-  dateKey: string,
-  count = 3,
-  round = 0,
-  completedIds: string[] = [],
-  lastBatchIds: string[] = []
-): { tasks: DailyChallengeDef[]; resetCompleted: boolean } {
-  const completedSet = new Set(completedIds);
-  const remaining = CHALLENGES.filter((c) => !completedSet.has(c.id));
-  const seedKey = round > 0 ? `${dateKey}#r${round}` : dateKey;
-
-  if (remaining.length >= count) {
+/**
+ * Pick brand-new daily tasks for completed slots on a new day.
+ * Never returns a task whose id is in `excludeIds` (tasks still in a slot or
+ * the ones being replaced). When `avoidIds` (the current cycle's completed
+ * history) covers the whole pool, the cycle restarts from the top.
+ */
+export function pickDailyTaskReplacements(
+  count: number,
+  excludeIds: string[],
+  seedKey: string,
+  avoidIds: string[] = []
+): { tasks: DailyChallengeDef[]; resetCycle: boolean } {
+  const exclude = new Set(excludeIds);
+  const avoid = new Set(avoidIds);
+  const fresh = CHALLENGES.filter((c) => !exclude.has(c.id) && !avoid.has(c.id));
+  if (fresh.length >= count) {
     return {
-      tasks: pickDeterministicChallenges(seedKey, remaining, count),
-      resetCompleted: false,
+      tasks: pickDeterministicChallenges(seedKey, fresh, count),
+      resetCycle: false,
     };
   }
-
-  // All available daily challenges have been completed — restart from the full pool
-  const lastSet = new Set(lastBatchIds);
-  const freshPool =
-    CHALLENGES.length > count + lastSet.size
-      ? CHALLENGES.filter((c) => !lastSet.has(c.id))
-      : CHALLENGES;
+  // Every available task has been used this cycle — restart from the top.
+  const restart = CHALLENGES.filter((c) => !exclude.has(c.id));
   return {
-    tasks: pickDeterministicChallenges(seedKey, freshPool, count),
-    resetCompleted: true,
+    tasks: pickDeterministicChallenges(seedKey, restart, Math.min(count, restart.length)),
+    resetCycle: true,
   };
 }
+y

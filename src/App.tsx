@@ -125,6 +125,39 @@ export default function App() {
     saveRef.current = save;
   }, [save]);
 
+  // Roll daily tasks over at local midnight on launch, foreground and while open.
+  useEffect(() => {
+    const refresh = () => {
+      const next = saveStore.get();
+      if (next !== saveRef.current) {
+        saveRef.current = next;
+        setSave(next);
+      }
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    let midnightTimer: number | undefined;
+    const scheduleMidnight = () => {
+      const now = new Date();
+      const nextMidnight = new Date(now);
+      nextMidnight.setHours(24, 0, 0, 0);
+      midnightTimer = window.setTimeout(() => {
+        refresh();
+        scheduleMidnight();
+      }, nextMidnight.getTime() - now.getTime() + 1000);
+    };
+    scheduleMidnight();
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      if (midnightTimer !== undefined) window.clearTimeout(midnightTimer);
+    };
+  }, []);
+
   const stackRef = useRef<Screen[]>(['home']);
   const screenRef = useRef<Screen>('home');
   const tutorialStepRef = useRef<0 | 1 | 2 | 3>(0);

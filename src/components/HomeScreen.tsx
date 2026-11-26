@@ -15,7 +15,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { getArenaCrateStatus } from '../game/progression';
-import { getDailyChallengeForDate, getLocalDateKey, STAGES } from '../game/registries';
+import { CHALLENGES, STAGES } from '../game/registries';
 import { DailyProgress, PlayerStats, SaveDataV3 } from '../game/types';
 import { PWAInstallButton } from './PWAInstallButton';
 
@@ -113,7 +113,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   save,
   stats,
   coins,
-  daily,
   highestStageId,
   totalStageStars,
   onClaimCrate,
@@ -140,9 +139,26 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   }, []);
 
   const crateStatus = useMemo(() => getArenaCrateStatus(save, nowMs), [save, nowMs]);
-  const dateKey = daily.date || getLocalDateKey();
-  const dailyDef = useMemo(() => getDailyChallengeForDate(dateKey), [dateKey]);
-  const pct = Math.min(100, Math.round((daily.progress / dailyDef.target) * 100));
+  // Show a single daily task at a time, advancing to the next incomplete one.
+  const activeTask = useMemo(() => {
+    const tasks = save.dailyTasks?.tasks ?? [];
+    const withDefs = tasks.flatMap((task) => {
+      const def = CHALLENGES.find((c) => c.id === task.id);
+      return def ? [{ def, task }] : [];
+    });
+    if (withDefs.length === 0) return null;
+    const current =
+      withDefs.find(({ def, task }) => !task.completed && task.progress < def.target) ??
+      withDefs[withDefs.length - 1];
+    const progress = Math.min(current.task.progress, current.def.target);
+    return {
+      def: current.def,
+      progress,
+      target: current.def.target,
+      complete: current.task.completed || progress >= current.def.target,
+      pct: Math.min(100, Math.round((progress / current.def.target) * 100)),
+    };
+  }, [save.dailyTasks]);
   const badge = save.legend100Badge
     ? '100-Stage Legend'
     : save.grandChampionBadge
@@ -258,34 +274,36 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             )}
           </section>
 
-          {/* Daily challenge */}
-          <section className={`${CARD} p-3`}>
-            <div className="flex items-start justify-between gap-2 leading-tight">
-              <span className="min-w-0 text-sm font-bold text-white">Daily: {dailyDef.title}</span>
-              <span className={`shrink-0 text-sm font-extrabold tabular-nums ${daily.completed ? 'text-[#34d399]' : 'text-[#fbbf24]'}`}>
-                {daily.completed ? 'Done' : `+${dailyDef.reward} coins`}
-              </span>
-            </div>
-            <p className="m-0 mt-0.5 text-xs text-[#b8c7d3] leading-snug">{dailyDef.desc}</p>
-            <div className="mt-2 flex items-center gap-2">
-              <div
-                role="progressbar"
-                aria-label={dailyDef.title}
-                aria-valuemin={0}
-                aria-valuemax={dailyDef.target}
-                aria-valuenow={Math.min(daily.progress, dailyDef.target)}
-                className="flex-1 h-2 rounded-full bg-white/12 overflow-hidden"
-              >
-                <div
-                  className={`h-full rounded-full transition-[width] ${daily.completed ? 'bg-[#10b981]' : 'bg-[#f0452d]'}`}
-                  style={{ width: `${pct}%` }}
-                />
+          {/* Daily task */}
+          {activeTask && (
+            <section className={`${CARD} p-3`}>
+              <div className="flex items-start justify-between gap-2 leading-tight">
+                <span className="min-w-0 text-sm font-bold text-white">Daily: {activeTask.def.title}</span>
+                <span className={`shrink-0 text-sm font-extrabold tabular-nums ${activeTask.complete ? 'text-[#34d399]' : 'text-[#fbbf24]'}`}>
+                  {activeTask.complete ? 'Done' : `+${activeTask.def.reward} coins`}
+                </span>
               </div>
-              <span className="text-sm font-bold text-[#e2ebf2] tabular-nums shrink-0">
-                {Math.min(daily.progress, dailyDef.target)}/{dailyDef.target}
-              </span>
-            </div>
-          </section>
+              <p className="m-0 mt-0.5 text-xs text-[#b8c7d3] leading-snug">{activeTask.def.desc}</p>
+              <div className="mt-2 flex items-center gap-2">
+                <div
+                  role="progressbar"
+                  aria-label={activeTask.def.title}
+                  aria-valuemin={0}
+                  aria-valuemax={activeTask.target}
+                  aria-valuenow={activeTask.progress}
+                  className="flex-1 h-2 rounded-full bg-white/12 overflow-hidden"
+                >
+                  <div
+                    className={`h-full rounded-full transition-[width] ${activeTask.complete ? 'bg-[#10b981]' : 'bg-[#f0452d]'}`}
+                    style={{ width: `${activeTask.pct}%` }}
+                  />
+                </div>
+                <span className="text-sm font-bold text-[#e2ebf2] tabular-nums shrink-0">
+                  {activeTask.progress}/{activeTask.target}
+                </span>
+              </div>
+            </section>
+          )}
 
           {/* Modes */}
           <ModeRow

@@ -134,11 +134,16 @@ export interface DailyProgress {
 export interface DailyTaskProgress {
   id: string;
   progress: number;
+  completed: boolean;
   claimed: boolean;
+  completedDate?: string;
 }
 
 export interface DailyTasksState {
-  date: string;
+  lastRefreshDate: string;
+  date?: string;
+  round?: number;
+  completedIds?: string[];
   tasks: DailyTaskProgress[];
 }
 

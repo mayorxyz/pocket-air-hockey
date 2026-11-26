@@ -134,12 +134,21 @@ export interface DailyProgress {
 export interface DailyTaskProgress {
   id: string;
   progress: number;
+  completed: boolean;
+  /** Reward status: true once the reward has been credited for this task. */
   claimed: boolean;
+  /** Local date (YYYY-MM-DD) the task was completed, if completed. */
+  completedDate?: string;
 }
 
 export interface DailyTasksState {
-  date: string;
+  /** Local date (YYYY-MM-DD) when the day-change replacement last ran. */
+  lastRefreshDate: string;
+  /** Legacy field kept for migration only. */
+  date?: string;
+  /** Legacy field kept for migration only. */
   round?: number;
+  /** Legacy field kept for migration only. */
   completedIds?: string[];
   tasks: DailyTaskProgress[];
 }

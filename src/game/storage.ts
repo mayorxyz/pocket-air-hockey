@@ -3,13 +3,14 @@ import {
   getDailyChallengeForDate,
   getDailyTasksForDate,
   getLocalDateKey,
-  getNextDailyTasksBatch,
+  pickDailyTaskReplacements,
   STAGES,
 } from './registries';
 import { SKINS } from './skins';
 import {
   DailyProgress,
   DailyTasksState,
+  DailyTaskProgress,
   DEFAULT_SETTINGS,
   Difficulty,
   GameMode,
@@ -82,12 +83,12 @@ export function createFreshDaily(dateKey = getLocalDateKey()): DailyProgress {
 
 export function createFreshDailyTasks(dateKey = getLocalDateKey()): DailyTasksState {
   return {
+    lastRefreshDate: dateKey,
     date: dateKey,
-    round: 0,
-    completedIds: [],
     tasks: getDailyTasksForDate(dateKey).map((t) => ({
       id: t.id,
       progress: 0,
+      completed: false,
       claimed: false,
     })),
   };
@@ -348,71 +349,146 @@ function sanitizeDaily(raw: unknown): DailyProgress {
   };
 }
 
-export function ensureDailyTasksFresh(tasks: DailyTasksState): DailyTasksState {
-  const today = getLocalDateKey();
-  if (tasks && tasks.date === today && Array.isArray(tasks.tasks) && tasks.tasks.length > 0) {
-    const validIds = new Set(CHALLENGES.map((c) => c.id));
-    const allValid = tasks.tasks.every((t) => t && validIds.has(t.id));
-    if (allValid) {
-      if (tasks.tasks.every((t) => t.claimed)) {
-        const nextRound = (tasks.round ?? 0) + 1;
-        const lastBatchIds = tasks.tasks.map((t) => t.id);
-        const mergedCompleted = Array.from(
-          new Set([...(tasks.completedIds ?? []), ...lastBatchIds])
-        );
-        const { tasks: nextDefs, resetCompleted } = getNextDailyTasksBatch(
-          today,
-          3,
-          nextRound,
-          mergedCompleted,
-          lastBatchIds
-        );
-        return {
-          date: today,
-          round: nextRound,
-          completedIds: resetCompleted ? [] : mergedCompleted,
-          tasks: nextDefs.map((d) => ({ id: d.id, progress: 0, claimed: false })),
-        };
-      }
-      return tasks;
+const TASK_SLOTS = 3;
+
+function isTaskComplete(task: DailyTaskProgress, def: { target: number }): boolean {
+  return task.completed || task.progress >= def.target;
+}
+
+/**
+ * Normalize a saved daily-task state into the current 3-slot model.
+ * - Keeps ids, progress, completion and reward state; never rerolls on its own.
+ * - Fills missing slots only when an old/partial save had fewer than 3 tasks.
+ * - Derives legacy fields (date / round / completedIds) into the new model.
+ * Returns `changed` so callers can avoid needless writes.
+ */
+function normalizeDailyTasks(
+  raw: DailyTasksState | undefined,
+  today: string
+): { state: DailyTasksState; changed: boolean } {
+  const source = raw && typeof raw === 'object' ? raw : undefined;
+  const byId = new Map(CHALLENGES.map((c) => [c.id, c]));
+  const tasks: DailyTaskProgress[] = [];
+  const seen = new Set<string>();
+
+  if (source && Array.isArray(source.tasks)) {
+    for (const t of source.tasks) {
+      if (!t || typeof t.id !== 'string' || seen.has(t.id)) continue;
+      const def = byId.get(t.id);
+      if (!def) continue;
+      seen.add(t.id);
+      const rawProgress = Math.round(clampNum(t.progress, 0, def.target, 0));
+      const completed = Boolean(t.completed) || rawProgress >= def.target;
+      tasks.push({
+        id: def.id,
+        progress: completed ? Math.max(rawProgress, def.target) : rawProgress,
+        completed,
+        claimed: Boolean(t.claimed) && completed,
+        completedDate: completed ? t.completedDate || source.date || today : undefined,
+      });
+      if (tasks.length === TASK_SLOTS) break;
     }
   }
-  return createFreshDailyTasks(today);
+
+  const lastRefreshDate =
+    (source?.lastRefreshDate && typeof source.lastRefreshDate === 'string'
+      ? source.lastRefreshDate
+      : undefined) ||
+    source?.date ||
+    today;
+
+  // Backfill missing slots (legacy / partial saves) without touching existing ones.
+  if (tasks.length < TASK_SLOTS) {
+    const extras = pickDailyTaskReplacements(
+      TASK_SLOTS - tasks.length,
+      tasks.map((t) => t.id),
+      `${lastRefreshDate}#backfill`
+    );
+    for (const def of extras) {
+      tasks.push({ id: def.id, progress: 0, completed: false, claimed: false });
+    }
+  }
+
+  const state: DailyTasksState = {
+    lastRefreshDate,
+    date: source?.date,
+    round: source?.round,
+    completedIds: source?.completedIds,
+    tasks,
+  };
+
+  const changed =
+    !source ||
+    source.lastRefreshDate !== lastRefreshDate ||
+    JSON.stringify(source.tasks ?? null) !== JSON.stringify(tasks);
+
+  return { state, changed };
+}
+
+/**
+ * Normalize to the 3-slot model for today. Does NOT replace completed tasks;
+ * day-change replacement only happens in refreshDailyTasks().
+ */
+export function ensureDailyTasksFresh(tasks: DailyTasksState): DailyTasksState {
+  return normalizeDailyTasks(tasks, getLocalDateKey()).state;
+}
+
+/**
+ * Run the once-per-day replacement. Completed tasks from a previous refresh
+ * date are swapped for new tasks; uncompleted tasks stay in place with their
+ * progress. Completed-but-unclaimed rewards are credited before replacement so
+ * no reward can be lost. Safe to call repeatedly: it only acts when the local
+ * date has advanced past lastRefreshDate (several missed days = one refresh).
+ */
+export function refreshDailyTasks(save: SaveDataV3, now = new Date()): SaveDataV3 {
+  const today = getLocalDateKey(now);
+  const { state, changed } = normalizeDailyTasks(save.dailyTasks, today);
+
+  if (state.lastRefreshDate === today) {
+    return changed ? { ...save, dailyTasks: state } : save;
+  }
+
+  let coins = save.coins;
+  const completedSlots: number[] = [];
+  state.tasks.forEach((task, index) => {
+    const def = CHALLENGES.find((c) => c.id === task.id);
+    if (!def) return;
+    if (isTaskComplete(task, def)) {
+      completedSlots.push(index);
+      if (!task.claimed) coins += def.reward;
+    }
+  });
+
+  let nextTasks = state.tasks;
+  if (completedSlots.length > 0) {
+    const replacements = pickDailyTaskReplacements(
+      completedSlots.length,
+      state.tasks.map((t) => t.id),
+      `${today}#${completedSlots.join('-')}`
+    );
+    nextTasks = state.tasks.slice();
+    completedSlots.forEach((slot, index) => {
+      const def = replacements[index];
+      if (!def) return;
+      nextTasks[slot] = { id: def.id, progress: 0, completed: false, claimed: false };
+    });
+  }
+
+  return {
+    ...save,
+    coins,
+    dailyTasks: {
+      ...state,
+      lastRefreshDate: today,
+      tasks: nextTasks,
+    },
+  };
 }
 
 function sanitizeDailyTasks(raw: unknown): DailyTasksState {
   const today = getLocalDateKey();
   if (!raw || typeof raw !== 'object') return createFreshDailyTasks(today);
-  const r = raw as Partial<DailyTasksState>;
-  if (r.date !== today || !Array.isArray(r.tasks) || r.tasks.length === 0) {
-    return createFreshDailyTasks(today);
-  }
-
-  const byId = new Map(CHALLENGES.map((c) => [c.id, c]));
-  const seen = new Set<string>();
-  const tasks = r.tasks.flatMap((t) => {
-    if (!t || typeof t.id !== 'string' || seen.has(t.id)) return [];
-    const def = byId.get(t.id);
-    if (!def) return [];
-    seen.add(t.id);
-    const progress = Math.round(clampNum(t.progress, 0, def.target, 0));
-    return [
-      {
-        id: def.id,
-        progress,
-        claimed: Boolean(t.claimed) && progress >= def.target,
-      },
-    ];
-  });
-
-  if (tasks.length === 0) return createFreshDailyTasks(today);
-
-  const round = Math.round(clampNum(r.round, 0, 1_000_000, 0));
-  const completedIds = Array.isArray(r.completedIds)
-    ? Array.from(new Set(r.completedIds.filter((id): id is string => typeof id === 'string' && byId.has(id))))
-    : [];
-
-  return ensureDailyTasksFresh({ date: today, round, completedIds, tasks });
+  return normalizeDailyTasks(raw as DailyTasksState, today).state;
 }
 
 function migrate1to2(raw: Record<string, unknown>): Record<string, unknown> {
@@ -596,10 +672,23 @@ class SaveStore {
 
   get(): SaveDataV3 {
     const freshDaily = ensureDailyFresh(this.data.daily);
-    const freshTasks = ensureDailyTasksFresh(this.data.dailyTasks);
-    if (freshDaily !== this.data.daily || freshTasks !== this.data.dailyTasks) {
-      this.data = { ...this.data, daily: freshDaily, dailyTasks: freshTasks };
-      this.scheduleWrite();
+    let next = freshDaily !== this.data.daily ? { ...this.data, daily: freshDaily } : this.data;
+    next = refreshDailyTasks(next);
+    if (next !== this.data) {
+      this.data = next;
+      // Persist immediately: a day change may have credited rewards, and we must
+      // never grant the same reward twice if the app closes right afterwards.
+      this.writeImmediate(this.data);
+    }
+    return this.data;
+  }
+
+  /** Re-check for a new local day (called on launch, foreground and midnight). */
+  refresh(now = new Date()): SaveDataV3 {
+    const next = refreshDailyTasks(this.data, now);
+    if (next !== this.data) {
+      this.data = next;
+      this.writeImmediate(this.data);
     }
     return this.data;
   }

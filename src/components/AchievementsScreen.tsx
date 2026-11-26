@@ -502,7 +502,7 @@ function MedalEmblem({
 
               <div className="flex items-center justify-between gap-2 px-1">
                 <h2 className="font-display m-0 text-base font-extrabold text-white">
-                  Daily tasks{(save.dailyTasks.round ?? 0) > 0 ? ` · Round ${(save.dailyTasks.round ?? 0) + 1}` : ''}
+                  Daily tasks
                 </h2>
                 <span className="text-xs font-bold text-[#b8c7d3] tabular-nums">
                   {tasksClaimed}/{dailyTasks.length} claimed
@@ -511,7 +511,7 @@ function MedalEmblem({
 
               <ul className={`${CARD} list-none m-0 p-0 divide-y divide-white/10`}>
                 {dailyTasks.map(({ def, task }) => {
-                  const complete = task.progress >= def.target;
+                  const complete = task.completed || task.progress >= def.target;
                   const claimable = complete && !task.claimed;
                   return (
                     <li key={def.id} className="p-3">
