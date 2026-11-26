@@ -624,6 +624,29 @@ export default function App() {
     });
   }, []);
 
+  // ➕ ADD THIS RIGHT HERE ➕
+  const handleDevLockAll = useCallback(() => {
+    setSave((prev) => {
+      const defaults = createDefaultSave();
+      const nextSave: SaveDataV3 = {
+        ...prev,
+        coins: defaults.coins,
+        unlocks: defaults.unlocks,
+        achievements: defaults.achievements,
+        stages: defaults.stages,
+        grandChampionBadge: defaults.grandChampionBadge ?? false,
+        legend100Badge: defaults.legend100Badge ?? false,
+        stats: defaults.stats,
+        history: defaults.history,
+        tutorialCompleted: defaults.tutorialCompleted,
+        daily: defaults.daily,
+      };
+      saveStore.set(nextSave, true);
+      return nextSave;
+    });
+  }, []);
+
+
   const handleResetSettings = useCallback(() => {
     const defaults = createDefaultSave().settings;
     setSave((prev) => {
@@ -1118,6 +1141,7 @@ export default function App() {
           onResetStats={handleResetStats}
           onResetSettings={handleResetSettings}
           onDevUnlockAll={handleDevUnlockAll}
+          onDevLockAll={handleDevLockAll} // ➕ MAKE SURE THIS LINE IS HERE ➕
           onOpenHowTo={() => pushScreen('howto')}
           onBack={goBack}
         />

@@ -1,5 +1,6 @@
 import { isLightSurface, TableSkin } from './skins';
 import { drawSportPattern, isSportPattern } from './sportPatterns';
+import { drawSkinPattern } from './skinPatterns';
 
 
 export function drawTablePattern(
@@ -14,6 +15,8 @@ export function drawTablePattern(
     drawSportPattern(g, pattern, W, H, tableSkin);
     return;
   }
+
+  if (drawSkinPattern(g, tableSkin, W, H)) return;
   
   if (pattern === 'air_dots') {
     g.save();
@@ -528,3 +531,4 @@ export function drawTablePattern(
 
   g.restore();
 }
+

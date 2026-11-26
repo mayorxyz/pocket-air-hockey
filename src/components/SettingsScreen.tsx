@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Coins, Unlock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Coins, Unlock, Lock } from 'lucide-react';
 import { SkinCategory } from '../game/skins';
 import {
   APP_VERSION,
@@ -9,6 +9,7 @@ import {
   WinScoreOption,
 } from '../game/types';
 import { ConfirmDialog } from './ConfirmDialog';
+import { PWAInstallButton } from './PWAInstallButton';
 import { SkinPickers } from './SkinPickers';
 
 interface SettingsScreenProps {
@@ -18,6 +19,7 @@ interface SettingsScreenProps {
   onResetStats: () => void;
   onResetSettings: () => void;
   onDevUnlockAll: () => void;
+  onDevLockAll: () => void;
   onOpenHowTo: () => void;
   onBack: () => void;
 }
@@ -98,10 +100,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onResetStats,
   onResetSettings,
   onDevUnlockAll,
+  onDevLockAll,
   onOpenHowTo,
   onBack,
 }) => {
-  const [confirmKind, setConfirmKind] = useState<'stats' | 'settings' | 'dev-unlock' | null>(null);
+  const [confirmKind, setConfirmKind] = useState<'stats' | 'settings' | 'dev-unlock' | 'dev-lock' | null>(null);
   const { settings } = save;
 
   return (
@@ -130,18 +133,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       <div className="flex-1 min-h-0 overflow-y-auto">
         <div className="w-full max-w-xl mx-auto flex flex-col gap-3.5 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <section>
-            <h2 className={HEADING}>
-              Skins
-            </h2>
+            <h2 className={HEADING}>Skins</h2>
             <div className="rounded-2xl bg-[#14202c] border border-white/10 p-3">
               <SkinPickers save={save} onSelectOrBuy={onSelectOrBuySkin} />
             </div>
           </section>
 
           <section>
-            <h2 className={HEADING}>
-              Audio
-            </h2>
+            <h2 className={HEADING}>Audio</h2>
             <div className={CARD}>
               <ToggleRow
                 label="Sound effects"
@@ -155,10 +154,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               />
               <div className="px-3 pt-3 pb-1">
                 <div className="flex items-center justify-between">
-                  <label
-                    htmlFor="master-vol"
-                    className="text-sm font-semibold text-white"
-                  >
+                  <label htmlFor="master-vol" className="text-sm font-semibold text-white">
                     Master volume
                   </label>
                   <span className="text-sm font-bold text-[#b8c7d3] tabular-nums">
@@ -180,9 +176,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </section>
 
           <section>
-            <h2 className={HEADING}>
-              Gameplay
-            </h2>
+            <h2 className={HEADING}>Gameplay</h2>
             <div className={CARD}>
               <ToggleRow
                 label="Power-ups"
@@ -263,9 +257,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </section>
 
           <section>
-            <h2 className={HEADING}>
-              Feedback
-            </h2>
+            <h2 className={HEADING}>Feedback</h2>
             <div className={CARD}>
               <ToggleRow
                 label="Vibration"
@@ -281,9 +273,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </section>
 
           <section>
-            <h2 className={HEADING}>
-              Display &amp; Quality
-            </h2>
+            <h2 className={HEADING}>Display &amp; Quality</h2>
             <div className={CARD}>
               <SegmentedRow<FpsCapOption>
                 label="Frame rate"
@@ -323,9 +313,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </section>
 
           <section>
-            <h2 className={HEADING}>
-              Data
-            </h2>
+            <h2 className={HEADING}>Data</h2>
             <div className={CARD}>
               <button
                 type="button"
@@ -346,10 +334,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
           {import.meta.env.DEV && (
             <section>
-              <h2 className={`${HEADING} !text-amber-300`}>
-                Developer Testing
-              </h2>
-              <div className="rounded-2xl bg-amber-950/35 border border-amber-300/25 overflow-hidden">
+              <h2 className={`${HEADING} !text-amber-300`}>Developer Testing</h2>
+              <div className="rounded-2xl bg-amber-950/35 border border-amber-300/25 overflow-hidden divide-y divide-amber-300/25">
                 <button
                   type="button"
                   onClick={() => setConfirmKind('dev-unlock')}
@@ -358,14 +344,20 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   <Unlock className="w-4 h-4 shrink-0" aria-hidden="true" />
                   Unlock all for testing
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmKind('dev-lock')}
+                  className={`${ROW} !justify-start text-amber-100 hover:bg-amber-300/10 cursor-pointer`}
+                >
+                  <Lock className="w-4 h-4 shrink-0" aria-hidden="true" />
+                  Lock all for testing (Factory Reset)
+                </button>
               </div>
             </section>
           )}
 
           <section>
-            <h2 className={HEADING}>
-              Info
-            </h2>
+            <h2 className={HEADING}>Info</h2>
             <div className={CARD}>
               <button
                 type="button"
@@ -385,6 +377,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   120Hz Arcade Physics · Web Audio Synth
                 </span>
               </div>
+              <PWAInstallButton variant="full" className="mt-2" />
             </div>
           </section>
         </div>
@@ -423,6 +416,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           confirmLabel="Unlock everything"
           onConfirm={() => {
             onDevUnlockAll();
+            setConfirmKind(null);
+          }}
+          onCancel={() => setConfirmKind(null)}
+        />
+      )}
+
+      {confirmKind === 'dev-lock' && (
+        <ConfirmDialog
+          title="Lock everything for testing?"
+          message="This resets all stages, skins, achievements, coins, and stats to the default factory state. This developer-only option is hidden from production builds."
+          confirmLabel="Lock everything"
+          onConfirm={() => {
+            onDevLockAll();
             setConfirmKind(null);
           }}
           onCancel={() => setConfirmKind(null)}
