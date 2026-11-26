@@ -267,6 +267,7 @@ export default function App() {
   }, [commitPendingStageLoss, pushScreen, syncEngineScreen]);
 
   const goHome = useCallback(() => {
+    soundEngine.setInMatch(false);
     commitPendingStageLoss();
     setConfirmQuitOpen(false);
     setActiveStageId(null);
@@ -336,6 +337,7 @@ export default function App() {
 
   const startTutorialFlow = useCallback(() => {
     soundEngine.init();
+    soundEngine.setInMatch(true);
     setActiveStageId(null);
     pendingStageLossRef.current = null;
     setPendingStageLoss(null);
@@ -361,6 +363,7 @@ export default function App() {
         setHud(snapshot);
       },
       onMatchEnd: (result) => {
+        soundEngine.setInMatch(false);
         if (
           result.stageId &&
           !result.won &&
@@ -402,6 +405,7 @@ export default function App() {
         setTutorialStep(step);
       },
       onTutorialComplete: (skipped) => {
+        soundEngine.setInMatch(false);
         setTutorialStep(0);
         const { save: nextSave, bonusCoins } = completeTutorialSave(saveRef.current, skipped);
         saveRef.current = nextSave;
@@ -429,6 +433,7 @@ export default function App() {
     if (saveRef.current.stats.totalMatches === 0 && !saveRef.current.tutorialCompleted) {
       firstRunTimer = window.setTimeout(() => {
         if (engineRef.current) {
+          soundEngine.setInMatch(true);
           stackRef.current = ['home', 'game'];
           screenRef.current = 'game';
           setScreen('game');
@@ -686,6 +691,7 @@ export default function App() {
       const mins = opts?.mins ?? timedMinutes;
 
       soundEngine.init();
+      soundEngine.setInMatch(true);
       saveStore.setLastMode(opp);
       setActiveStageId(null);
       setTutorialStep(0);
@@ -726,6 +732,7 @@ export default function App() {
 
   const startStageMatch = useCallback((stage: StageConfig) => {
     soundEngine.init();
+    soundEngine.setInMatch(true);
     setActiveStageId(stage.id);
     setTutorialStep(0);
     pendingStageLossRef.current = null;
@@ -777,6 +784,7 @@ export default function App() {
 
   const handleContinueStage = useCallback((cost: number) => {
     soundEngine.init();
+    soundEngine.setInMatch(true);
     const nextSave = deductContinueCoins(saveRef.current, cost);
     saveRef.current = nextSave;
     setSave(nextSave);
@@ -791,6 +799,7 @@ export default function App() {
 
   const handleResume = useCallback(() => {
     soundEngine.init();
+    soundEngine.setInMatch(true);
     stackRef.current = activeStageId !== null ? ['home', 'stages', 'game'] : ['home', 'game'];
     syncEngineScreen('game');
   }, [activeStageId, syncEngineScreen]);
