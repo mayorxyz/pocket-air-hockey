@@ -19,11 +19,9 @@ import { soundEngine } from './audio';
 import { MODES, OBSTACLE_LAYOUTS, PERSONALITIES, POWERUPS, PowerupEffectsState, PowerupId } from './registries';
 import { getMalletSkin, getPuckSkin, getTableSkin, isLightSurface, resolveTableSkin, TableSkin } from './skins';
 import { drawPuckEmblem } from './puckEmblems';
-import { drawPuckDesign } from './puckDesigns';
-import { isExtraPuck } from './puckSkins';
+import { drawPuckDesign, hasPuckDesign } from './puckDesigns';
 import { drawMalletPattern } from './malletPatterns';
-import { drawMalletDesign } from './malletDesigns';
-import { isExtraMallet } from './malletSkins';
+import { drawMalletDesign, hasMalletDesign } from './malletDesigns';
 import { buildTableGeometry, isAngleInArc, TableGeometry, tracePolygonPath, WallSegment } from './tableGeometry';
 import { drawTablePattern } from './tablePatterns';
 import {
@@ -1838,9 +1836,15 @@ export class AirHockeyEngine {
 
     ctx.save();
     if (glow) { ctx.shadowColor = skin.glow as string; ctx.shadowBlur = 14; }
-    if (skin.design && isExtraMallet(skin.design)) {
-      drawMalletDesign(ctx, skin.design, m.x, m.y, mr, {
-        body: skin.body ?? color, ring: skin.ring, accent: skin.accent ?? skin.ring, accent2: skin.accent2 ?? dark,
+    const malletDesign =
+      skin.design && hasMalletDesign(skin.design)
+        ? skin.design
+        : hasMalletDesign(skin.id)
+          ? skin.id
+          : undefined;
+    if (malletDesign) {
+      drawMalletDesign(ctx, malletDesign, m.x, m.y, mr, {
+        body: skin.body ?? color, ring: skin.ring, accent: skin.accent ?? skin.ring, accent2: skin.accent2,
       }, color);
       ctx.restore();
     } else {
@@ -1880,12 +1884,18 @@ export class AirHockeyEngine {
     this.circle(p.x, p.y, PR);
     ctx.restore();
 
-    if (skin.emblem && isExtraPuck(skin.emblem)) {
+    const designId =
+      skin.emblem && hasPuckDesign(skin.emblem)
+        ? skin.emblem
+        : hasPuckDesign(skin.id)
+          ? skin.id
+          : undefined;
+    if (designId) {
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(rot);
-      drawPuckDesign(ctx, skin.emblem, 0, 0, PR, {
-        body: skin.body, ring: skin.ring, accent: skin.accent ?? skin.ring, accent2: skin.accent2 ?? skin.body,
+      drawPuckDesign(ctx, designId, 0, 0, PR, {
+        body: skin.body, ring: skin.ring, accent: skin.accent ?? skin.ring, accent2: skin.accent2,
       });
       ctx.restore();
     } else {
@@ -2267,5 +2277,9 @@ export class AirHockeyEngine {
     window.removeEventListener('resize', this.scheduleResize);
     window.removeEventListener('orientationchange', this.onOrientationChange);
     window.visualViewport?.removeEventListener('resize', this.scheduleResize);
+    if (this.resizeObserver !== null) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
   }
 }

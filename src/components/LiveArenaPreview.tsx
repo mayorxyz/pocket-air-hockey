@@ -3,11 +3,9 @@ import { getMalletSkin, getPuckSkin, getTableSkin, isLightSurface } from '../gam
 import { buildTableGeometry, tracePolygonPath } from '../game/tableGeometry';
 import { drawTablePattern } from '../game/tablePatterns';
 import { drawPuckEmblem } from '../game/puckEmblems';
-import { drawPuckDesign } from '../game/puckDesigns';
-import { isExtraPuck } from '../game/puckSkins';
+import { drawPuckDesign, hasPuckDesign } from '../game/puckDesigns';
 import { drawMalletPattern } from '../game/malletPatterns';
-import { drawMalletDesign } from '../game/malletDesigns';
-import { isExtraMallet } from '../game/malletSkins';
+import { drawMalletDesign, hasMalletDesign } from '../game/malletDesigns';
 
 interface LiveArenaPreviewProps {
   tableSkinId: string;
@@ -244,13 +242,18 @@ export const LiveArenaPreview: React.FC<LiveArenaPreviewProps> = ({
     let rafId = 0;
     const startMs = performance.now();
 
-    const extraDesign = malletSkin.design;
-    const makeMalletSprite = (fill: string, dark: string) => {
-      if (!extraDesign || !isExtraMallet(extraDesign)) return null;
+    const malletDesignId =
+      malletSkin.design && hasMalletDesign(malletSkin.design)
+        ? malletSkin.design
+        : hasMalletDesign(malletSkin.id)
+          ? malletSkin.id
+          : undefined;
+    const makeMalletSprite = (fill: string) => {
+      if (!malletDesignId) return null;
       return makeSprite(MR, (c) =>
         drawMalletDesign(
           c,
-          extraDesign,
+          malletDesignId,
           0,
           0,
           MR,
@@ -258,27 +261,31 @@ export const LiveArenaPreview: React.FC<LiveArenaPreviewProps> = ({
             body: malletSkin.body ?? fill,
             ring: malletSkin.ring,
             accent: malletSkin.accent ?? malletSkin.ring,
-            accent2: malletSkin.accent2 ?? dark,
+            accent2: malletSkin.accent2,
           },
           fill
         )
       );
     };
-    const p1Sprite = makeMalletSprite(malletSkin.p1, malletSkin.p1dark);
-    const p2Sprite = makeMalletSprite(malletSkin.p2, malletSkin.p2dark);
+    const p1Sprite = makeMalletSprite(malletSkin.p1);
+    const p2Sprite = makeMalletSprite(malletSkin.p2);
 
-    const emblem = puckSkin.emblem;
-    const puckSprite =
-      emblem && isExtraPuck(emblem)
-        ? makeSprite(PR, (c) =>
-            drawPuckDesign(c, emblem, 0, 0, PR, {
-              body: puckSkin.body,
-              ring: puckSkin.ring,
-              accent: puckSkin.accent ?? puckSkin.ring,
-              accent2: puckSkin.accent2 ?? puckSkin.body,
-            })
-          )
-        : null;
+    const designId =
+      puckSkin.emblem && hasPuckDesign(puckSkin.emblem)
+        ? puckSkin.emblem
+        : hasPuckDesign(puckSkin.id)
+          ? puckSkin.id
+          : undefined;
+    const puckSprite = designId
+      ? makeSprite(PR, (c) =>
+          drawPuckDesign(c, designId, 0, 0, PR, {
+            body: puckSkin.body,
+            ring: puckSkin.ring,
+            accent: puckSkin.accent ?? puckSkin.ring,
+            accent2: puckSkin.accent2,
+          })
+        )
+      : null;
 
     const drawSprite = (sprite: { image: HTMLCanvasElement; half: number }, x: number, y: number) => {
       ctx.drawImage(sprite.image, x - sprite.half, y - sprite.half, sprite.half * 2, sprite.half * 2);

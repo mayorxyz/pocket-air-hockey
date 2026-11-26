@@ -218,6 +218,186 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
     window.clearTimeout(burstTimer.current);
     burstTimer.current = window.setTimeout(() => setBurst(null), 1800);
   };
+  
+  const RARITY_MEDAL_STYLES: Record<
+  string,
+  {
+    rimGradient: string;
+    faceGradient: string;
+    ribbonGradient: string;
+    ribbonText: string;
+    glowColor: string;
+    ringBorder: string;
+    label: string;
+  }
+> = {
+  common: {
+    // Brushed Bronze / Emerald Enamel
+    rimGradient: 'from-[#6ee7b7] via-[#059669] to-[#064e3b]',
+    faceGradient: 'from-[#047857] via-[#10b981] to-[#022c22]',
+    ribbonGradient: 'from-[#065f46] via-[#059669] to-[#064e3b]',
+    ribbonText: 'text-emerald-100',
+    glowColor: 'shadow-[0_10px_25px_-5px_rgba(16,185,129,0.5)]',
+    ringBorder: 'border-emerald-300/60',
+    label: 'COMMON',
+  },
+  rare: {
+    // Anodized Cobalt / Sapphire
+    rimGradient: 'from-[#bae6fd] via-[#0284c7] to-[#0c4a6e]',
+    faceGradient: 'from-[#0369a1] via-[#38bdf8] to-[#082f49]',
+    ribbonGradient: 'from-[#075985] via-[#0284c7] to-[#0c4a6e]',
+    ribbonText: 'text-sky-100',
+    glowColor: 'shadow-[0_10px_25px_-5px_rgba(56,189,248,0.5)]',
+    ringBorder: 'border-sky-300/60',
+    label: 'RARE',
+  },
+  mystic: {
+    // Amethyst / Royal Chrome
+    rimGradient: 'from-[#f3e8ff] via-[#9333ea] to-[#3b0764]',
+    faceGradient: 'from-[#6b21a8] via-[#c084fc] to-[#2e1065]',
+    ribbonGradient: 'from-[#581c87] via-[#7e22ce] to-[#3b0764]',
+    ribbonText: 'text-purple-100',
+    glowColor: 'shadow-[0_10px_25px_-5px_rgba(168,85,247,0.55)]',
+    ringBorder: 'border-purple-300/60',
+    label: 'MYSTIC',
+  },
+  legendary: {
+    // 24k Minted Gold (sharp highlight -> rich gold -> deep shadow -> warm bounce)
+    rimGradient: 'from-[#fef08a] via-[#eab308] to-[#713f12]',
+    faceGradient: 'from-[#ca8a04] via-[#facc15] to-[#422006]',
+    ribbonGradient: 'from-[#991b1b] via-[#dc2626] to-[#7f1d1d]', // Classic royal crimson ribbon for gold medals
+    ribbonText: 'text-amber-100',
+    glowColor: 'shadow-[0_10px_28px_-4px_rgba(251,191,36,0.65)]',
+    ringBorder: 'border-amber-200/80',
+    label: 'LEGENDARY',
+  },
+};
+
+function MedalEmblem({
+  ach,
+  isUnlocked,
+  current,
+}: {
+  ach: (typeof ACHIEVEMENTS)[0];
+  isUnlocked: boolean;
+  current: number;
+}) {
+  const rarity = (ach as any).rarity || 'common';
+  const style = RARITY_MEDAL_STYLES[rarity] ?? RARITY_MEDAL_STYLES.common;
+  const Icon = isUnlocked ? Award : Lock;
+
+  return (
+    <div className="flex flex-col items-center gap-2 p-3">
+      {/* Realistic Physical Medal Assembly */}
+      <div className="relative flex flex-col items-center pt-1">
+        {/* 1. Woven Fabric Ribbon with V-cut tail & center fold */}
+        <div
+          className={`relative z-10 w-14 h-7 rounded-t-md bg-gradient-to-b ${
+            isUnlocked ? style.ribbonGradient : 'from-slate-700 via-slate-800 to-slate-900'
+          } shadow-md flex items-center justify-center overflow-hidden border-t border-white/25`}
+          style={{
+            clipPath: 'polygon(0 0, 100% 0, 100% 82%, 50% 100%, 0 82%)',
+          }}
+        >
+          {/* Subtle vertical fabric weave & center pleat shadow */}
+          <div className="absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent,transparent_2px,rgba(0,0,0,0.18)_2px,rgba(0,0,0,0.18)_4px)] pointer-events-none" />
+          <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-3 bg-gradient-to-r from-black/30 via-white/10 to-black/30 pointer-events-none" />
+          <span
+            className={`relative z-10 text-[8px] font-black tracking-widest uppercase drop-shadow ${
+              isUnlocked ? style.ribbonText : 'text-slate-400'
+            }`}
+          >
+            {style.label}
+          </span>
+        </div>
+
+        {/* 2. Metallic Suspension Ring (Bail) connecting ribbon to medal */}
+        <div
+          className={`relative z-0 -mt-1.5 mb-[-6px] w-4 h-3.5 rounded-full border-[2.5px] ${
+            isUnlocked ? style.ringBorder : 'border-slate-500/50'
+          } bg-[#0d151e] shadow-inner`}
+        />
+
+        {/* 3. Outer Minted Rim (Beveled Metal Edge) */}
+        <div
+          className={`relative w-20 h-20 rounded-full p-[5px] bg-gradient-to-b ${
+            isUnlocked
+              ? `${style.rimGradient} ${style.glowColor}`
+              : 'from-slate-500 via-slate-700 to-slate-900 opacity-75'
+          } shadow-[inset_0_2px_3px_rgba(255,255,255,0.65),inset_0_-3px_4px_rgba(0,0,0,0.75)] transition-transform duration-300`}
+        >
+          {/* 4. Recessed Inner Dish (Sunken face with inner shadow) */}
+          <div
+            className={`relative w-full h-full rounded-full bg-gradient-to-tr ${
+              isUnlocked ? style.faceGradient : 'from-slate-700 via-slate-800 to-slate-900'
+            } shadow-[inset_0_4px_8px_rgba(0,0,0,0.7),inset_0_-2px_4px_rgba(255,255,255,0.35)] flex items-center justify-center overflow-hidden`}
+          >
+            {/* Diagonal Specular Metallic Sheen */}
+            {isUnlocked && (
+              <div
+                className="absolute -inset-2 bg-[linear-gradient(115deg,transparent_25%,rgba(255,255,255,0.45)_45%,rgba(255,255,255,0.1)_52%,transparent_65%)] pointer-events-none"
+                aria-hidden="true"
+              />
+            )}
+
+            {/* Fine Engraved Concentric Ring */}
+            <div
+              className={`absolute inset-1.5 rounded-full border ${
+                isUnlocked ? 'border-white/25' : 'border-white/5'
+              } pointer-events-none`}
+            />
+
+            {/* Embossed Icon (dark top-left shadow + bright bottom-right rim light) */}
+            <Icon
+              className={`w-8 h-8 relative z-10 ${
+                isUnlocked
+                  ? 'text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.75)]'
+                  : 'text-slate-400/50'
+              }`}
+              aria-hidden="true"
+            />
+          </div>
+
+          {/* 5. Stamped Metal Points Coin (Bottom-right) */}
+          <div
+            className={`absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black tabular-nums border ${
+              isUnlocked
+                ? 'bg-gradient-to-b from-white via-slate-100 to-slate-300 text-[#101922] border-white shadow-[0_3px_6px_rgba(0,0,0,0.6),inset_0_1px_1px_#fff]'
+                : 'bg-slate-800 text-slate-400 border-slate-600'
+            }`}
+          >
+            {ach.points ?? 0}
+          </div>
+        </div>
+      </div>
+
+      {/* Text Content */}
+      <div className="text-center w-full mt-1.5">
+        <div
+          className={`font-display font-extrabold text-sm leading-tight mb-1 ${
+            isUnlocked ? 'text-white' : 'text-white/60'
+          }`}
+        >
+          {ach.name}
+        </div>
+        <p className="text-[11px] text-[#b8c7d3] leading-snug line-clamp-2 mb-2">
+          {ach.desc}
+        </p>
+
+        {ach.target && !isUnlocked && (
+          <ProgressBar value={current} max={ach.target} color="bg-[#f0452d]" />
+        )}
+
+        {isUnlocked && (
+          <div className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 mt-1">
+            <Check className="w-3 h-3" />
+            Unlocked
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
   return (
     <div className="fixed inset-0 z-20 flex flex-col bg-[#0d151e]/95 backdrop-blur-md pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]">

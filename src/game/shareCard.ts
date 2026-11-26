@@ -1,11 +1,9 @@
 import { getMalletSkin, getPuckSkin, getTableSkin } from './skins';
 import { buildTableGeometry, tracePolygonPath } from './tableGeometry';
 import { drawPuckEmblem } from './puckEmblems';
-import { drawPuckDesign } from './puckDesigns';
-import { isExtraPuck } from './puckSkins';
+import { drawPuckDesign, hasPuckDesign } from './puckDesigns';
 import { drawMalletPattern } from './malletPatterns';
-import { drawMalletDesign } from './malletDesigns';
-import { isExtraMallet } from './malletSkins';
+import { drawMalletDesign, hasMalletDesign } from './malletDesigns';
 
 export interface ShareCardPayload {
   title: string;
@@ -120,8 +118,13 @@ export async function shareResultCard(
   ctx.fill();
 
   const drawMalletAt = (cy: number, fill: string, dark: string) => {
-    const design = malletSkin.design;
-    if (design && isExtraMallet(design)) {
+    const design =
+      malletSkin.design && hasMalletDesign(malletSkin.design)
+        ? malletSkin.design
+        : hasMalletDesign(malletSkin.id)
+          ? malletSkin.id
+          : undefined;
+    if (design) {
       drawMalletDesign(
         ctx,
         design,
@@ -132,7 +135,7 @@ export async function shareResultCard(
           body: malletSkin.body ?? fill,
           ring: malletSkin.ring,
           accent: malletSkin.accent ?? malletSkin.ring,
-          accent2: malletSkin.accent2 ?? dark,
+          accent2: malletSkin.accent2,
         },
         fill,
       );
@@ -166,13 +169,17 @@ export async function shareResultCard(
 
   // Puck
   const designEmblem =
-    puckSkin.emblem && isExtraPuck(puckSkin.emblem) ? puckSkin.emblem : undefined;
+    puckSkin.emblem && hasPuckDesign(puckSkin.emblem)
+      ? puckSkin.emblem
+      : hasPuckDesign(puckSkin.id)
+        ? puckSkin.id
+        : undefined;
   if (designEmblem) {
     drawPuckDesign(ctx, designEmblem, tw / 2, th / 2, 22, {
       body: puckSkin.body,
       ring: puckSkin.ring,
       accent: puckSkin.accent ?? puckSkin.ring,
-      accent2: puckSkin.accent2 ?? puckSkin.body,
+      accent2: puckSkin.accent2,
     });
   } else {
     ctx.fillStyle = puckSkin.body;

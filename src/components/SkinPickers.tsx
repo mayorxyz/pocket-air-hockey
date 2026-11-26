@@ -37,10 +37,8 @@ import {
   TableSkin,
 } from '../game/skins';
 import { buildTableGeometry } from '../game/tableGeometry';
-import { drawPuckDesign } from '../game/puckDesigns';
-import { isExtraPuck } from '../game/puckSkins';
-import { drawMalletDesign } from '../game/malletDesigns';
-import { isExtraMallet } from '../game/malletSkins';
+import { drawPuckDesign, hasPuckDesign } from '../game/puckDesigns';
+import { drawMalletDesign, hasMalletDesign } from '../game/malletDesigns';
 import { SaveDataV3 } from '../game/types';
 import { ConfirmDialog } from './ConfirmDialog';
 import { LiveArenaPreview } from './LiveArenaPreview';
@@ -276,7 +274,11 @@ const PUCK_EMBLEM_ICONS: Partial<
 const PuckPreview: React.FC<{ skin: PuckSkin }> = ({ skin }) => {
   const EmblemIcon = skin.emblem ? PUCK_EMBLEM_ICONS[skin.emblem] : undefined;
   const designEmblem =
-    skin.emblem && isExtraPuck(skin.emblem) ? skin.emblem : undefined;
+    skin.emblem && hasPuckDesign(skin.emblem)
+      ? skin.emblem
+      : hasPuckDesign(skin.id)
+        ? skin.id
+        : undefined;
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -294,7 +296,7 @@ const PuckPreview: React.FC<{ skin: PuckSkin }> = ({ skin }) => {
       body: skin.body,
       ring: skin.ring,
       accent: skin.accent ?? skin.ring,
-      accent2: skin.accent2 ?? skin.body,
+      accent2: skin.accent2,
     });
   }, [designEmblem, skin.body, skin.ring, skin.accent, skin.accent2]);
 
@@ -341,7 +343,12 @@ const MalletDesignCanvas: React.FC<{ skin: MalletSkin; teamColor: string }> = ({
   teamColor,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const design = skin.design && isExtraMallet(skin.design) ? skin.design : undefined;
+  const design =
+    skin.design && hasMalletDesign(skin.design)
+      ? skin.design
+      : hasMalletDesign(skin.id)
+        ? skin.id
+        : undefined;
 
   useEffect(() => {
     if (!design || !canvasRef.current) return;
@@ -361,21 +368,21 @@ const MalletDesignCanvas: React.FC<{ skin: MalletSkin; teamColor: string }> = ({
       size / 2,
       size / 2 - 1,
       {
-        body: skin.body ?? skin.p1dark,
+        body: skin.body ?? teamColor,
         ring: skin.ring,
         accent: skin.accent ?? skin.ring,
-        accent2: skin.accent2 ?? skin.p1dark,
+        accent2: skin.accent2,
       },
       teamColor,
     );
-  }, [design, skin.body, skin.ring, skin.accent, skin.accent2, skin.p1dark, teamColor]);
+  }, [design, skin.body, skin.ring, skin.accent, skin.accent2, teamColor]);
 
   return <canvas ref={canvasRef} style={{ width: 24, height: 24 }} />;
 };
 
 const MalletPreview: React.FC<{ skin: MalletSkin }> = ({ skin }) => {
   const glowStyle = skin.glow ? { boxShadow: `0 0 8px ${skin.glow}` } : undefined;
-  const isDesign = skin.design && isExtraMallet(skin.design);
+  const isDesign = Boolean((skin.design && hasMalletDesign(skin.design)) || hasMalletDesign(skin.id));
   return (
     <div className="w-14 h-12 rounded-xl bg-[#0d151e]/70 border border-white/12 flex items-center justify-center gap-1.5 shrink-0">
       {isDesign ? (

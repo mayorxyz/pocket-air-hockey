@@ -374,7 +374,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               <div className="min-h-12 px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-sm">
                 <span className="font-semibold text-white shrink-0">Credits</span>
                 <span className="text-[#b8c7d3] text-right">
-                  120Hz Arcade Physics · Web Audio Synth
+                  M-GAME
                 </span>
               </div>
               <PWAInstallButton variant="full" className="mt-2" />
