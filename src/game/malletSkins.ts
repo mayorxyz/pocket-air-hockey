@@ -7,7 +7,7 @@ export const EXTRA_MALLETS = {
     accent: '#38bdf8',
     accent2: '#e2e8f0',
     locked: true,
-    unlock: { type: 'coins', price: 80 },
+    unlock: { type: 'coins', price: 380 },
   },
   gearhead: {
     id: 'gearhead',
@@ -17,7 +17,7 @@ export const EXTRA_MALLETS = {
     accent: '#d4a017',
     accent2: '#fde68a',
     locked: true,
-    unlock: { type: 'coins', price: 90 },
+    unlock: { type: 'coins', price: 300 },
   },
   gem_core: {
     id: 'gem_core',
@@ -27,7 +27,7 @@ export const EXTRA_MALLETS = {
     accent: '#8b5cf6',
     accent2: '#f5d0fe',
     locked: true,
-    unlock: { type: 'coins', price: 150 },
+    unlock: { type: 'coins', price: 350 },
   },
   soccer_star: {
     id: 'soccer_star',
@@ -37,7 +37,7 @@ export const EXTRA_MALLETS = {
     accent: '#111827',
     accent2: '#dc2626',
     locked: true,
-    unlock: { type: 'coins', price: 90 },
+    unlock: { type: 'coins', price: 400 },
   },
   slam_dunk: {
     id: 'slam_dunk',
@@ -47,7 +47,7 @@ export const EXTRA_MALLETS = {
     accent: '#1c1917',
     accent2: '#fed7aa',
     locked: true,
-    unlock: { type: 'coins', price: 90 },
+    unlock: { type: 'coins', price: 390 },
   },
   vinyl: {
     id: 'vinyl',
@@ -57,7 +57,7 @@ export const EXTRA_MALLETS = {
     accent: '#fb7185',
     accent2: '#fde047',
     locked: true,
-    unlock: { type: 'coins', price: 100 },
+    unlock: { type: 'coins', price: 400 },
   },
   reactor: {
     id: 'reactor',
@@ -67,7 +67,7 @@ export const EXTRA_MALLETS = {
     accent: '#5eead4',
     accent2: '#f0fdfa',
     locked: true,
-    unlock: { type: 'coins', price: 130 },
+    unlock: { type: 'coins', price: 430 },
   },
   tiger: {
     id: 'tiger',
@@ -77,7 +77,7 @@ export const EXTRA_MALLETS = {
     accent: '#1c1917',
     accent2: '#fef3c7',
     locked: true,
-    unlock: { type: 'coins', price: 110 },
+    unlock: { type: 'coins', price: 350 },
   },
   sunburst: {
     id: 'sunburst',
@@ -87,7 +87,7 @@ export const EXTRA_MALLETS = {
     accent: '#f97316',
     accent2: '#fef08a',
     locked: true,
-    unlock: { type: 'coins', price: 100 },
+    unlock: { type: 'coins', price: 400 },
   },
   spider_web: {
     id: 'spider_web',
@@ -97,7 +97,7 @@ export const EXTRA_MALLETS = {
     accent: '#e5e7eb',
     accent2: '#f87171',
     locked: true,
-    unlock: { type: 'coins', price: 110 },
+    unlock: { type: 'coins', price: 500 },
   },
   tidal: {
     id: 'tidal',
@@ -107,7 +107,7 @@ export const EXTRA_MALLETS = {
     accent: '#38bdf8',
     accent2: '#ffffff',
     locked: true,
-    unlock: { type: 'coins', price: 80 },
+    unlock: { type: 'coins', price: 400 },
   },
   royal_shield: {
     id: 'royal_shield',
@@ -117,7 +117,7 @@ export const EXTRA_MALLETS = {
     accent: '#b91c1c',
     accent2: '#fef9c3',
     locked: true,
-    unlock: { type: 'coins', price: 140 },
+    unlock: { type: 'coins', price: 500 },
   },
 } as const;
 
