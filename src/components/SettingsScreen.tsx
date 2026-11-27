@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Coins, Unlock, Lock, Volume2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Coins, Download, Unlock, Lock, Volume2 } from 'lucide-react';
 import { SkinCategory } from '../game/skins';
 import {
   APP_VERSION,
@@ -109,7 +109,30 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onBack,
 }) => {
   const [confirmKind, setConfirmKind] = useState<'stats' | 'settings' | 'dev-unlock' | 'dev-lock' | null>(null);
+  const [apkDownloadLoading, setApkDownloadLoading] = useState(false);
   const { settings } = save;
+
+  const handleDownloadApk = async () => {
+    setApkDownloadLoading(true);
+    try {
+      const res = await fetch('/apk/app-debug.apk');
+      if (!res.ok) throw new Error('APK not found');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'app-debug.apk';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('APK download failed', err);
+      alert('Failed to download APK. Please try again later.');
+    } finally {
+      setApkDownloadLoading(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-20 flex flex-col bg-gradient-to-b from-[#0d151e]/98 to-[#0a1018]/98 backdrop-blur-md pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]">
@@ -373,6 +396,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               >
                 <span>How to Play</span>
                 <ChevronRight className="w-5 h-5 text-[#b8c7d3] group-hover:text-white group-hover:translate-x-0.5 transition-all" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadApk}
+                disabled={apkDownloadLoading}
+                className={`${ROW} text-white hover:bg-white/5 cursor-pointer group ${apkDownloadLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
+              >
+                <Download className="w-5 h-5 shrink-0" aria-hidden="true" />
+                <span>{apkDownloadLoading ? 'Downloading…' : 'Download APK'}</span>
               </button>
               <div className="min-h-12 px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-sm">
                 <span className="font-semibold text-white/90">About</span>
