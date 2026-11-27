@@ -684,7 +684,7 @@ export const SkinsScreen: React.FC<SkinsScreenProps> = ({
           <span>Back</span>
         </button>
 
-        <h1 className="font-display m-0 text-[clamp(1.25rem,4vw,1.65rem)] font-extrabold italic tracking-tight text-white">
+        <h1 className="font-display m-0 text-[clamp(1.25rem,4vw,1.65rem)] font-bold italic tracking-tight text-white">
           Skin Studio
         </h1>
 

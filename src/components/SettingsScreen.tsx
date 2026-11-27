@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Coins, Unlock, Lock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Coins, Unlock, Lock, Volume2 } from 'lucide-react';
 import { SkinCategory } from '../game/skins';
 import {
   APP_VERSION,
@@ -24,10 +24,10 @@ interface SettingsScreenProps {
   onBack: () => void;
 }
 
-const CARD = 'rounded-2xl bg-[#14202c] border border-white/10 divide-y divide-white/10 overflow-hidden';
-const HEADING = 'font-display m-0 mb-1.5 px-1 text-xs font-extrabold uppercase tracking-wide text-[#b8c7d3]';
-const FOCUS = 'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white';
-const ROW = `w-full min-h-12 px-3 py-2 flex items-center justify-between gap-3 text-left text-sm font-semibold leading-snug ${FOCUS}`;
+const CARD = 'rounded-2xl bg-gradient-to-br from-[#1a2836] to-[#0f1a24] border border-white/10 shadow-lg shadow-black/30 divide-y divide-white/10 overflow-hidden';
+const HEADING = 'font-display m-0 mb-1.5 px-1 text-xs font-extrabold uppercase tracking-wider text-[#b8c7d3]/90 drop-shadow-sm';
+const FOCUS = 'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white/50';
+const ROW = `w-full min-h-12 px-3 py-2 flex items-center justify-between gap-3 text-left text-sm font-semibold leading-snug transition-colors ${FOCUS}`;
 
 interface ToggleRowProps {
   label: string;
@@ -41,16 +41,18 @@ const ToggleRow: React.FC<ToggleRowProps> = ({ label, checked, onChange }) => (
     role="switch"
     aria-checked={checked}
     onClick={() => onChange(!checked)}
-    className={`${ROW} text-white hover:bg-white/8 cursor-pointer`}
+    className={`${ROW} text-white hover:bg-white/5 cursor-pointer group`}
   >
     <span className="min-w-0">{label}</span>
     <span
       aria-hidden="true"
-      className={`w-11 h-6 rounded-full p-0.5 shrink-0 flex items-center transition-colors ${
-        checked ? 'bg-[#f0452d] justify-end' : 'bg-white/20 justify-start'
+      className={`relative w-11 h-6 rounded-full p-0.5 shrink-0 flex items-center transition-all duration-200 ${
+        checked 
+          ? 'bg-gradient-to-br from-[#f0452d] to-[#d13622] shadow-[0_0_8px_rgba(240,69,45,0.4)] justify-end' 
+          : 'bg-[#2a3b4d] shadow-inner justify-start'
       }`}
     >
-      <span className="w-5 h-5 rounded-full bg-white shadow-sm" />
+      <span className={`w-5 h-5 rounded-full bg-white shadow-md transition-all duration-200 ${checked ? 'scale-100' : 'scale-90'}`} />
     </span>
   </button>
 );
@@ -70,8 +72,8 @@ function SegmentedRow<T extends string | number>({
 }: SegmentedRowProps<T>) {
   return (
     <div role="group" aria-label={label} className="p-3">
-      <div className="mb-2 text-sm font-semibold text-white leading-snug">{label}</div>
-      <div className="flex flex-wrap gap-1 p-1 bg-[#0e1720] rounded-xl">
+      <div className="mb-2 text-sm font-semibold text-white/90 leading-snug drop-shadow-sm">{label}</div>
+      <div className="flex flex-wrap gap-1.5 p-1 bg-[#0b1219] rounded-xl shadow-inner border border-white/5">
         {options.map((opt) => {
           const active = opt.value === value;
           return (
@@ -80,8 +82,10 @@ function SegmentedRow<T extends string | number>({
               type="button"
               aria-pressed={active}
               onClick={() => onChange(opt.value)}
-              className={`flex-auto basis-0 min-w-fit min-h-11 px-2 py-1 rounded-lg text-xs font-bold text-center leading-tight cursor-pointer transition-transform active:scale-[0.97] ${FOCUS} ${
-                active ? 'bg-white text-[#101922]' : 'text-[#b8c7d3] hover:text-white hover:bg-white/8'
+              className={`flex-auto basis-0 min-w-fit min-h-10 px-2 py-1.5 rounded-lg text-xs font-bold text-center leading-tight cursor-pointer transition-all duration-150 active:scale-[0.97] ${FOCUS} ${
+                active 
+                  ? 'bg-gradient-to-br from-white to-[#e2e8f0] text-[#101922] shadow-md shadow-white/10' 
+                  : 'text-[#b8c7d3] hover:text-white hover:bg-white/5'
               }`}
             >
               {opt.label}
@@ -108,22 +112,22 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const { settings } = save;
 
   return (
-    <div className="fixed inset-0 z-20 flex flex-col bg-[#0d151e]/95 backdrop-blur-md pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]">
+    <div className="fixed inset-0 z-20 flex flex-col bg-gradient-to-b from-[#0d151e]/98 to-[#0a1018]/98 backdrop-blur-md pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]">
       <header className="w-full max-w-xl mx-auto shrink-0 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2.5 flex items-center gap-2.5">
         <button
           type="button"
           onClick={onBack}
           aria-label="Back"
-          className="w-11 h-11 rounded-full bg-[#14202c] border border-white/15 text-white inline-flex items-center justify-center shrink-0 cursor-pointer transition-transform active:scale-[0.97]"
+          className="w-11 h-11 rounded-full bg-gradient-to-br from-[#1a2836] to-[#0f1a24] border border-white/15 text-white inline-flex items-center justify-center shrink-0 cursor-pointer transition-all duration-150 active:scale-[0.97] shadow-md shadow-black/30 hover:border-white/25"
         >
           <ChevronLeft className="w-6 h-6" aria-hidden="true" />
         </button>
-        <h1 className="font-display m-0 flex-1 min-w-0 text-2xl font-extrabold italic tracking-tight text-white leading-none">
+        <h1 className="font-display m-0 flex-1 min-w-0 text-2xl font-extrabold italic tracking-tight text-white leading-none drop-shadow-lg">
           Settings
         </h1>
         <div
           aria-label={`${save.coins} coins`}
-          className="h-11 px-3 rounded-full bg-[#14202c] border border-[#fbbf24]/40 inline-flex items-center gap-1.5 text-sm font-extrabold text-[#fbbf24] tabular-nums shrink-0"
+          className="h-11 px-3 rounded-full bg-gradient-to-br from-[#1a2836] to-[#0f1a24] border border-[#fbbf24]/30 inline-flex items-center gap-1.5 text-sm font-extrabold text-[#fbbf24] tabular-nums shrink-0 shadow-md shadow-black/30 drop-shadow-[0_0_8px_rgba(251,191,36,0.3)]"
         >
           <Coins className="w-4 h-4 shrink-0" aria-hidden="true" />
           <span>{save.coins.toLocaleString()}</span>
@@ -134,7 +138,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <div className="w-full max-w-xl mx-auto flex flex-col gap-3.5 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <section>
             <h2 className={HEADING}>Skins</h2>
-            <div className="rounded-2xl bg-[#14202c] border border-white/10 p-3">
+            <div className="rounded-2xl bg-gradient-to-br from-[#1a2836] to-[#0f1a24] border border-white/10 shadow-lg shadow-black/30 p-3">
               <SkinPickers save={save} onSelectOrBuy={onSelectOrBuySkin} />
             </div>
           </section>
@@ -152,25 +156,28 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 checked={settings.musicEnabled}
                 onChange={(musicEnabled) => onUpdate({ musicEnabled })}
               />
-              <div className="px-3 pt-3 pb-1">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="master-vol" className="text-sm font-semibold text-white">
+              <div className="px-3 pt-3 pb-3">
+                <div className="flex items-center justify-between mb-1">
+                  <label htmlFor="master-vol" className="text-sm font-semibold text-white/90 flex items-center gap-1.5">
+                    <Volume2 className="w-4 h-4 text-[#b8c7d3]" aria-hidden="true" />
                     Master volume
                   </label>
-                  <span className="text-sm font-bold text-[#b8c7d3] tabular-nums">
+                  <span className="text-sm font-bold text-[#fbbf24] tabular-nums drop-shadow-[0_0_6px_rgba(251,191,36,0.4)]">
                     {settings.masterVolume}%
                   </span>
                 </div>
-                <input
-                  id="master-vol"
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={5}
-                  value={settings.masterVolume}
-                  onChange={(e) => onUpdate({ masterVolume: Number(e.target.value) })}
-                  className="w-full h-11 accent-[#f0452d] cursor-pointer"
-                />
+                <div className="h-11 flex items-center">
+                  <input
+                    id="master-vol"
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={settings.masterVolume}
+                    onChange={(e) => onUpdate({ masterVolume: Number(e.target.value) })}
+                    className="w-full h-2 bg-[#0b1219] rounded-full appearance-none cursor-pointer accent-[#f0452d] shadow-inner hover:accent-[#ff5a3f] transition-all"
+                  />
+                </div>
               </div>
             </div>
           </section>
@@ -318,14 +325,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setConfirmKind('stats')}
-                className={`${ROW} text-[#ff8a76] hover:bg-white/8 cursor-pointer`}
+                className={`${ROW} text-[#ff8a76] hover:bg-[#ff8a76]/10 cursor-pointer`}
               >
                 Reset stats &amp; history
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmKind('settings')}
-                className={`${ROW} text-[#ff8a76] hover:bg-white/8 cursor-pointer`}
+                className={`${ROW} text-[#ff8a76] hover:bg-[#ff8a76]/10 cursor-pointer`}
               >
                 Reset all settings
               </button>
@@ -334,22 +341,22 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
           {import.meta.env.DEV && (
             <section>
-              <h2 className={`${HEADING} !text-amber-300`}>Developer Testing</h2>
-              <div className="rounded-2xl bg-amber-950/35 border border-amber-300/25 overflow-hidden divide-y divide-amber-300/25">
+              <h2 className={`${HEADING} !text-amber-300/90`}>Developer Testing</h2>
+              <div className="rounded-2xl bg-gradient-to-br from-amber-950/40 to-amber-950/20 border border-amber-500/20 overflow-hidden divide-y divide-amber-500/20 shadow-lg shadow-black/20">
                 <button
                   type="button"
                   onClick={() => setConfirmKind('dev-unlock')}
-                  className={`${ROW} !justify-start text-amber-100 hover:bg-amber-300/10 cursor-pointer`}
+                  className={`${ROW} !justify-start text-amber-100 hover:bg-amber-500/10 cursor-pointer transition-colors`}
                 >
-                  <Unlock className="w-4 h-4 shrink-0" aria-hidden="true" />
+                  <Unlock className="w-4 h-4 shrink-0 mr-1" aria-hidden="true" />
                   Unlock all for testing
                 </button>
                 <button
                   type="button"
                   onClick={() => setConfirmKind('dev-lock')}
-                  className={`${ROW} !justify-start text-amber-100 hover:bg-amber-300/10 cursor-pointer`}
+                  className={`${ROW} !justify-start text-amber-100 hover:bg-amber-500/10 cursor-pointer transition-colors`}
                 >
-                  <Lock className="w-4 h-4 shrink-0" aria-hidden="true" />
+                  <Lock className="w-4 h-4 shrink-0 mr-1" aria-hidden="true" />
                   Lock all for testing (Factory Reset)
                 </button>
               </div>
@@ -362,22 +369,22 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               <button
                 type="button"
                 onClick={onOpenHowTo}
-                className={`${ROW} text-white hover:bg-white/8 cursor-pointer`}
+                className={`${ROW} text-white hover:bg-white/5 cursor-pointer group`}
               >
                 <span>How to Play</span>
-                <ChevronRight className="w-5 h-5 text-[#b8c7d3]" aria-hidden="true" />
+                <ChevronRight className="w-5 h-5 text-[#b8c7d3] group-hover:text-white group-hover:translate-x-0.5 transition-all" aria-hidden="true" />
               </button>
               <div className="min-h-12 px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-sm">
-                <span className="font-semibold text-white">About</span>
+                <span className="font-semibold text-white/90">About</span>
                 <span className="text-[#b8c7d3] tabular-nums">Air Hockey · v{APP_VERSION}</span>
               </div>
               <div className="min-h-12 px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-sm">
-                <span className="font-semibold text-white shrink-0">Credits</span>
-                <span className="text-[#b8c7d3] text-right">
-                  M-GAME
-                </span>
+                <span className="font-semibold text-white/90 shrink-0">Credits</span>
+                <span className="text-[#b8c7d3] text-right font-medium">M-GAME</span>
               </div>
-              <PWAInstallButton variant="full" className="mt-2" />
+              <div className="p-3 pt-1">
+                <PWAInstallButton variant="full" className="w-full" />
+              </div>
             </div>
           </section>
         </div>
