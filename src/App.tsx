@@ -539,11 +539,7 @@ export default function App() {
         saveRef.current = res.save;
         setSave(res.save);
         soundEngine.play('unlock');
-        showStatusToast(
-          res.restarted
-            ? `+${res.rewardCoins} Coins — All daily tasks complete! New set started.`
-            : `+${res.rewardCoins} Coins — Daily Task Complete!`
-        );
+        showStatusToast(`+${res.rewardCoins} Coins — Daily Task Complete!`);
       }
     },
     [showStatusToast]

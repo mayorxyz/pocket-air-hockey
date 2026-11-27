@@ -403,17 +403,22 @@ function normalizeDailyTasks(
       TASK_SLOTS - tasks.length,
       tasks.map((t) => t.id),
       `${lastRefreshDate}#backfill`
-    );
+    ).tasks;
     for (const def of extras) {
       tasks.push({ id: def.id, progress: 0, completed: false, claimed: false });
     }
   }
 
+  const knownIds = new Set(CHALLENGES.map((c) => c.id));
+  const completedIds = Array.isArray(source?.completedIds)
+    ? source.completedIds.filter((id): id is string => typeof id === 'string' && knownIds.has(id))
+    : [];
+
   const state: DailyTasksState = {
     lastRefreshDate,
     date: source?.date,
     round: source?.round,
-    completedIds: source?.completedIds,
+    completedIds,
     tasks,
   };
 
@@ -455,16 +460,21 @@ export function refreshDailyTasks(save: SaveDataV3, now = new Date()): SaveDataV
     if (!def) return;
     if (isTaskComplete(task, def)) {
       completedSlots.push(index);
+      // Credit a finished reward once, before the slot is replaced.
       if (!task.claimed) coins += def.reward;
     }
   });
 
   let nextTasks = state.tasks;
+  let completedIds = [...(state.completedIds ?? [])];
   if (completedSlots.length > 0) {
-    const replacements = pickDailyTaskReplacements(
+    const replacedIds = completedSlots.map((slot) => state.tasks[slot].id);
+    const { tasks: replacements, resetCycle } = pickDailyTaskReplacements(
       completedSlots.length,
+      // Current slots and the ones being replaced are the same set.
       state.tasks.map((t) => t.id),
-      `${today}#${completedSlots.join('-')}`
+      `${today}#${completedSlots.join('-')}`,
+      completedIds
     );
     nextTasks = state.tasks.slice();
     completedSlots.forEach((slot, index) => {
@@ -472,6 +482,11 @@ export function refreshDailyTasks(save: SaveDataV3, now = new Date()): SaveDataV
       if (!def) return;
       nextTasks[slot] = { id: def.id, progress: 0, completed: false, claimed: false };
     });
+    // When the pool is exhausted, start the cycle again. Only the completed
+    // slots change; the ids just removed stay avoided until the new cycle fills.
+    completedIds = resetCycle
+      ? [...replacedIds]
+      : [...new Set([...completedIds, ...replacedIds])];
   }
 
   return {
@@ -480,6 +495,7 @@ export function refreshDailyTasks(save: SaveDataV3, now = new Date()): SaveDataV
     dailyTasks: {
       ...state,
       lastRefreshDate: today,
+      completedIds,
       tasks: nextTasks,
     },
   };
